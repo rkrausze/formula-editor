@@ -1,0 +1,61 @@
+.fe-toolbar {
+    position: absolute;
+    top: 20px;
+    left: 200px;
+    z-index: 997;
+    background: #C0C0C0;
+    color: #000000;
+    border: 2px outset;
+    white-space: nowrap;
+}
+
+.fe-toolbar .fe-title {
+    font-weight: bold;
+    font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+.fe-toolbar div button {
+    padding: 2px;
+    background: #E0E0E0;
+    border:none;
+    vertical-align: top;
+}
+
+.fe-toolbar div button:hover {
+    border: 2px outset;
+}
+
+.fe-toolbar div .pressed {
+    border: 2px inset !important;
+}
+
+.fe-toolbar div .pressed:hover {
+    border: 2px inset !important;
+}
+
+
+.fe-toolbar-popup {
+    position: absolute;
+    background: #C0C0C0;
+    z-index: 998;
+}
+
+.fe-toolbar-popup button {
+    padding: 2px;
+    background: #E0E0E0;
+    border:none;
+    vertical-align: top;
+}
+
+.fe-toolbar-popup button:hover {
+    border: 2px outset;
+}
+
+.fe-toolbar-popup .pressed {
+    border: 2px inset !important;
+}
+
+.fe-toolbar-popup .pressed:hover {
+    border: 2px inset !important;
+}
+
