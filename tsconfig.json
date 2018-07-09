@@ -2,6 +2,6 @@
     "compilerOptions": {
         "target": "es5",
         "sourceMap": true,
-        "outFile": "fe_dist.js"
+        "outFile": "dist/fe.js"
     }
 }
