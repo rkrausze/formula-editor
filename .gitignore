@@ -1,0 +1,19 @@
+.scannerwork/*
+node_modules/*
+
+
+min_and_copy.bat
+compressed.js
+compressed2 UJS3.js
+ef_pad_mt.js
+fe.java
+fe.min.js
+fe.ts_with_require.zip
+fe_dist.js
+fe_dist.js.map
+fe_dist_jsc.js
+index.htm
+package-lock.json
+require.js
+sonar-project.properties
+.vscode/launch.json
