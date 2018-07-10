@@ -1,30 +1,39 @@
-<html>
-    <head>
-        <script src="../dist/fe.min.js"></script>
-    </head>
-    <body>
-		<p> This is a simple example of two uneditable fe-panels. Look at the source of the HTML-File.<p>
-		<ol>
-			<li>The fe.js is included in head.</li>
-			<li>Two canvas elements are embedded.</li>
-			<li>In a Javascript-block at the end of file these canvas elements are used with the fe.FE-constructor to turn them into fe-panels and init with the formulas.
-		</ol>
-		<p>Example:</p>
-		
-        The solution of equation 
-        <canvas id="can_eq" width="150" height="50" style="margin-bottom:-17px"></canvas>
-		is 
-        <canvas id="can_sol" width="200" height="50" style="margin-bottom:-17px"></canvas>
-        <script type="text/javascript">
-                var fe1 = new fe.Fe(document.getElementById('can_eq'), {
-                    value: 'ax^2 + bx + c = 0',
+<!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<script src="../dist/fe.min.js"></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<p> This is a simple example of two uneditable fe-panels. Look at the source of the HTML-File.<p>
+			<ol>
+				<li>The fe.js is included in head.</li>
+				<li>Two canvas elements are embedded.</li>
+				<li>In a Javascript-block at the end of file these canvas elements are used with the fe.FE-constructor to turn them into fe-panels and init with the formulas.
+			</ol>
+			<p><a href="https://github.com/rkrausze/formula-editor">Back to Readme.md</a></p>
+			<p><b>Example:</b></p>
+			
+			The solution of equation 
+			<canvas id="can_eq" width="150" height="50" style="margin-bottom:-17px"></canvas>
+			is 
+			<canvas id="can_sol" width="200" height="50" style="margin-bottom:-17px"></canvas>
+		</div>
+		<script type="text/javascript">
+				var fe1 = new fe.Fe(document.getElementById('can_eq'), {
+					value: 'ax^2 + bx + c = 0',
 					noedit: true
-                });
-                var fe2 = new fe.Fe(document.getElementById('can_sol'), {
-                    value: 'x_{1,2}= \\frac{-b \u00B1 \\root{b^2-4ac}}{2a}',
+				});
+				var fe2 = new fe.Fe(document.getElementById('can_sol'), {
+					value: 'x_{1,2}= \\frac{-b \u00B1 \\root{b^2-4ac}}{2a}',
 					noedit: true
-                });
-        </script>
+				});
+		</script>
 
-    </body>
+	</body>
 </html>

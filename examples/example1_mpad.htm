@@ -1,34 +1,46 @@
-<html>
-    <head>
-        <script src="../dist/fe.min.js"></script>
-    </head>
-    <body>
-		<p> This is a simple example of two fe-fields pre-filled via mpad-syntax. Look at the source of the HTML-File.<p>
-		<ol>
-			<li>The fe.js is included in head.</li>
-			<li>Two canvas elements are embedded.</li>
-			<li>In a Javascript-block at the end of file these canvas elements are used with the fe.FE-constructor to turn them into fe-panels and init with the formulas.
-		</ol>
-		<p>Example:</p>
-		
-        <p>
-			This is an initially empty formula field:
-			<canvas id="can1" width="400" height="70" tabIndex="0" style="margin-bottom:-17px"></canvas>
-		</p>
-		<p>
-			This field is pre-filled:
-			<canvas id="can2" width="200" height="50" tabIndex="0" style="margin-bottom:-17px"></canvas>
-		</p>
-        <script type="text/javascript">
-                var fe1 = new fe.Fe(document.getElementById('can1'), {
-                    mpad: '\\all \\epsilon > 0 \\exist \\delta > 0 \\all x \\in D:  |x - x_0| < \\delta => |f(x) - f(x_0)| < \\epsilon',
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+		<script src="../dist/fe.min.js"></script>
+	</head>
+	<body>
+		<div class="container-fluid">
+			<p> This is a simple example of two fe-fields pre-filled via mpad-syntax. Look at the source of the HTML-File.<p>
+			<ol>
+				<li>The fe.js is included in head.</li>
+				<li>Two canvas elements are embedded.</li>
+				<li>In a Javascript-block at the end of file these canvas elements are used with the fe.FE-constructor to turn them into fe-panels and init with the formulas.
+			</ol>
+			<p><a href="https://github.com/rkrausze/formula-editor">Back to Readme.md</a></p>
+			<p><b>Example:</b></p>
+			
+			<p>
+				This is an initially empty formula field:
+				<canvas id="can1" width="400" height="70" tabIndex="0" style="margin-bottom:-17px; border: 1px solid #ccc; border-radius: 4px;"></canvas>
+			</p>
+			<p>
+				&nbsp;
+			</p>
+			<p>
+				This field is pre-filled:
+				<canvas id="can2" width="200" height="50" tabIndex="1" style="margin-bottom:-17px; border: 1px solid #ccc; border-radius: 4px;"></canvas>
+			</p>
+		</div>
+		<script type="text/javascript">
+				var fe1 = new fe.Fe(document.getElementById('can1'), {
+					mpad: '\\all \\epsilon > 0 \\exist \\delta > 0 \\all x \\in D:  |x - x_0| < \\delta => |f(x) - f(x_0)| < \\epsilon',
 					assets: '../assets/'
-                });
-                var fe2 = new fe.Fe(document.getElementById('can2'), {
-                    mpad: '\\Omega = V/A',
+				});
+				var fe2 = new fe.Fe(document.getElementById('can2'), {
+					mpad: '\\Omega = V/A',
 					assets: '../assets/',
-                });
-        </script>
+				});
+				document.getElementById('can1').focus();
+		</script>
 
-    </body>
+	</body>
 </html>
