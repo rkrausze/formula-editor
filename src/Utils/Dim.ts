@@ -89,7 +89,7 @@ namespace fe {
         }
 
         /**
-         * Checks. wether the point (x,y) is in te area.
+         * Checks wether the point (x,y) is in te area.
          *
          * @param x
          * @param y

@@ -21,23 +21,21 @@ namespace fe {
         div: HTMLDivElement;
         menuFieldArea: HTMLDivElement;
 
-        constructor(public fp: FormulaField, public assetPath: string, public oldStyle: boolean, para: string[] = null) {
+        constructor(public fp: FormulaField, public assetPath: string, public oldStyle: boolean, para: string[] = null, title = "Tools") {
             fp.toolbar = this;
 
             // insert the css-file
-            var fileref=document.createElement("link")
-            fileref.setAttribute("rel", "stylesheet")
-            fileref.setAttribute("type", "text/css")
-            fileref.setAttribute("href", assetPath+'fe.css');
-            document.getElementsByTagName("head")[0].appendChild(fileref);
-
+            if ( !window["feCssInserted"] ) {
+                var fileref=document.createElement("link")
+                fileref.setAttribute("rel", "stylesheet")
+                fileref.setAttribute("type", "text/css")
+                fileref.setAttribute("href", assetPath+'fe.css');
+                document.getElementsByTagName("head")[0].appendChild(fileref);
+                window["feCssInserted"] = true; // mark to avoid multiple insertions when using multiple fe's
+            }
             this.div = document.createElement('div');
             this.div.classList.add('fe-toolbar');
-            // this.div.style.position = "absolute";
-            // this.div.style.top = "20px";
-            // this.div.style.left = "120px";
-            // this.div.style.zIndex = "999";
-            this.div.innerHTML = '<div class="fe-title">Werkzeuge</div>';
+            this.div.innerHTML = '<div class="fe-title">' + title + '</div>';
             this.menuFieldArea = document.createElement('div');
             this.div.appendChild(this.menuFieldArea);
             if (para == null || para.length == 0 ) {
@@ -228,8 +226,47 @@ namespace fe {
         }
 
         setVisible(b: boolean) {
-            if (this.div.parentElement == null )
+            if (this.div.parentElement == null ) {
                 document.body.appendChild(this.div);
+                let canvasDim = this.getAbsDim(this.fp.canvas);
+                let bodyDim = {w: document.body.clientWidth, h: document.body.clientHeight};
+                let tbDim = {w: 280/*this.div.clientWidth*/, h: this.div.clientHeight};
+                console.log("fp %o", canvasDim);
+                console.log("bd %o", bodyDim);
+                console.log("tb %o", tbDim);
+                // deal with browser quirks with body/window/document and page scroll
+                var xScroll = document.body.scrollLeft || document.documentElement.scrollLeft;
+                var yScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                console.log("Scroll "+xScroll + ", " + yScroll);
+                let dLeft = canvasDim.x-xScroll;
+                let dRight = bodyDim.w-(canvasDim.x-xScroll+canvasDim.w)
+                let x = canvasDim.x-xScroll+canvasDim.w+8;
+                let y = canvasDim.y-yScroll;
+                if ( dRight < tbDim.w + 8 ) {
+                    if ( dLeft > dRight ) {
+                        x = canvasDim.x-xScroll - tbDim.w-8;
+                        if ( x < - tbDim.w - 8 ) { // left and right no place; try below
+                            let dUnder = yScroll+bodyDim.h-canvasDim.y-canvasDim.h;
+                            if ( dUnder > 20 ) {
+                                x = canvasDim.x-xScroll + (canvasDim.w - tbDim.w)/2;
+                                y = canvasDim.y-yScroll+canvasDim.h+8
+                            }
+                            else {
+                                x = canvasDim.x-xScroll;
+                            }
+                        }
+                    }
+                    else if ( dRight < 150 ) { // try under
+                        let dUnder = yScroll+bodyDim.h-canvasDim.y-canvasDim.h;
+                        if ( dUnder > 20 ) {
+                            x = canvasDim.x-xScroll + (canvasDim.w - tbDim.w)/2;
+                            y = canvasDim.y-yScroll+canvasDim.h+8
+                        }
+                    }
+            }
+                this.div.style.left = (x+xScroll)+"px";
+                this.div.style.top = (y+yScroll)+"px";
+            }
             this.div.style.display = b ? 'block' : 'none';
             if ( !b && this.subMenu != -1) {
                 this.closeSubMenu();
@@ -254,8 +291,8 @@ namespace fe {
             e.preventDefault();
             console.log("e %o", e);
             let r = this.div.getBoundingClientRect();
-            this.movingDx = e.clientX-r.left;
-            this.movingDy = e.clientY-r.top;
+            this.movingDx = e.clientX-r.left - (document.body.scrollLeft || document.documentElement.scrollLeft);
+            this.movingDy = e.clientY-r.top - (document.body.scrollTop || document.documentElement.scrollTop);
             this.fp.requestFocus();
         }
 
@@ -273,6 +310,30 @@ namespace fe {
             e.preventDefault();
             this.movingDx = -1;
         }
+
+        getAbsDim(el: HTMLElement) {
+            let xPos = 0;
+            let yPos = 0;
+            let w =  el.clientWidth;
+            let h =  el.clientHeight;
+
+            while (el) {
+              if (el.tagName == "BODY") {
+
+                xPos += (el.offsetLeft + el.clientLeft);
+                yPos += (el.offsetTop + el.clientTop);
+              } else {
+                // for all other non-BODY elements
+/*                xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+                yPos += (el.offsetTop - el.scrollTop + el.clientTop);*/
+                xPos += (el.offsetLeft + el.scrollLeft + el.clientLeft);
+                yPos += (el.offsetTop + el.scrollTop + el.clientTop);
+            }
+
+              el = <HTMLElement>(el.offsetParent);
+            }
+            return { x: xPos, y: yPos, w: w, h: h };
+          }
     }
 }
 

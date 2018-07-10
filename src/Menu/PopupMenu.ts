@@ -22,8 +22,8 @@ namespace fe {
         }
 
         setPosition(buttonPos: DOMRect | ClientRect) {
-            this.div.style.top = (buttonPos.top + buttonPos.height)+"px";
-            this.div.style.left = (buttonPos.left)+"px";
+            this.div.style.top = (buttonPos.top + buttonPos.height + (document.body.scrollTop || document.documentElement.scrollTop))+"px";
+            this.div.style.left = (buttonPos.left + (document.body.scrollLeft || document.documentElement.scrollLeft))+"px";
         }
 
         add(menu: MenuField): any {

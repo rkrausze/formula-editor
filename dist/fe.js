@@ -16,6 +16,14 @@ var __extends = (this && this.__extends) || (function () {
         d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
     };
 })();
+/**
+ * This code is mainly from
+ *
+ * https://soulwire.github.io/FontMetrics/
+ * A lightweight JavaScript library for computing accurate font metrics such as x-height, cap height, ascent, descent and tittle for any loaded web font.
+ *
+ * and just adapted to typescript.
+ */
 var fe;
 (function (fe) {
     var FontMetrics = /** @class */ (function () {
@@ -211,7 +219,7 @@ var fe;
             return this;
         };
         /**
-         * Checks. wether the point (x,y) is in te area.
+         * Checks wether the point (x,y) is in te area.
          *
          * @param x
          * @param y
@@ -1113,7 +1121,7 @@ var fe;
                         tbPara.push(para['menu' + i]);
                     else
                         break;
-                this.toolbar = new fe.Toolbar(this.ff, this.assetsPath, this.oldStyle, tbPara);
+                this.toolbar = new fe.Toolbar(this.ff, this.assetsPath, this.oldStyle, tbPara, para['menutitle'] || 'Tools');
                 this.toolbar.setVisible(true);
                 canvas.focus();
             }
@@ -1621,8 +1629,8 @@ var fe;
                 this.setPosition(buttonPos);
         };
         PopupMenu.prototype.setPosition = function (buttonPos) {
-            this.div.style.top = (buttonPos.top + buttonPos.height) + "px";
-            this.div.style.left = (buttonPos.left) + "px";
+            this.div.style.top = (buttonPos.top + buttonPos.height + (document.body.scrollTop || document.documentElement.scrollTop)) + "px";
+            this.div.style.left = (buttonPos.left + (document.body.scrollLeft || document.documentElement.scrollLeft)) + "px";
         };
         PopupMenu.prototype.add = function (menu) {
             this.div.appendChild(menu.button);
@@ -1651,8 +1659,9 @@ var fe;
 var fe;
 (function (fe) {
     var Toolbar = /** @class */ (function () {
-        function Toolbar(fp, assetPath, oldStyle, para) {
+        function Toolbar(fp, assetPath, oldStyle, para, title) {
             if (para === void 0) { para = null; }
+            if (title === void 0) { title = "Tools"; }
             this.fp = fp;
             this.assetPath = assetPath;
             this.oldStyle = oldStyle;
@@ -1666,18 +1675,17 @@ var fe;
             this.movingDy = -1;
             fp.toolbar = this;
             // insert the css-file
-            var fileref = document.createElement("link");
-            fileref.setAttribute("rel", "stylesheet");
-            fileref.setAttribute("type", "text/css");
-            fileref.setAttribute("href", assetPath + 'fe.css');
-            document.getElementsByTagName("head")[0].appendChild(fileref);
+            if (!window["feCssInserted"]) {
+                var fileref = document.createElement("link");
+                fileref.setAttribute("rel", "stylesheet");
+                fileref.setAttribute("type", "text/css");
+                fileref.setAttribute("href", assetPath + 'fe.css');
+                document.getElementsByTagName("head")[0].appendChild(fileref);
+                window["feCssInserted"] = true; // mark to avoid multiple insertions when using multiple fe's
+            }
             this.div = document.createElement('div');
             this.div.classList.add('fe-toolbar');
-            // this.div.style.position = "absolute";
-            // this.div.style.top = "20px";
-            // this.div.style.left = "120px";
-            // this.div.style.zIndex = "999";
-            this.div.innerHTML = '<div class="fe-title">Werkzeuge</div>';
+            this.div.innerHTML = '<div class="fe-title">' + title + '</div>';
             this.menuFieldArea = document.createElement('div');
             this.div.appendChild(this.menuFieldArea);
             if (para == null || para.length == 0) {
@@ -1861,8 +1869,47 @@ var fe;
             this.fp.exec(actionCommand);
         };
         Toolbar.prototype.setVisible = function (b) {
-            if (this.div.parentElement == null)
+            if (this.div.parentElement == null) {
                 document.body.appendChild(this.div);
+                var canvasDim = this.getAbsDim(this.fp.canvas);
+                var bodyDim = { w: document.body.clientWidth, h: document.body.clientHeight };
+                var tbDim = { w: 280 /*this.div.clientWidth*/, h: this.div.clientHeight };
+                console.log("fp %o", canvasDim);
+                console.log("bd %o", bodyDim);
+                console.log("tb %o", tbDim);
+                // deal with browser quirks with body/window/document and page scroll
+                var xScroll = document.body.scrollLeft || document.documentElement.scrollLeft;
+                var yScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                console.log("Scroll " + xScroll + ", " + yScroll);
+                var dLeft = canvasDim.x - xScroll;
+                var dRight = bodyDim.w - (canvasDim.x - xScroll + canvasDim.w);
+                var x = canvasDim.x - xScroll + canvasDim.w + 8;
+                var y = canvasDim.y - yScroll;
+                if (dRight < tbDim.w + 8) {
+                    if (dLeft > dRight) {
+                        x = canvasDim.x - xScroll - tbDim.w - 8;
+                        if (x < -tbDim.w - 8) { // left and right no place; try below
+                            var dUnder = yScroll + bodyDim.h - canvasDim.y - canvasDim.h;
+                            if (dUnder > 20) {
+                                x = canvasDim.x - xScroll + (canvasDim.w - tbDim.w) / 2;
+                                y = canvasDim.y - yScroll + canvasDim.h + 8;
+                            }
+                            else {
+                                x = canvasDim.x - xScroll;
+                            }
+                        }
+                    }
+                    else if (dRight < 150) { // try under
+                        var dUnder = yScroll + bodyDim.h - canvasDim.y - canvasDim.h;
+                        if (dUnder > 20) {
+                            x = canvasDim.x - xScroll + (canvasDim.w - tbDim.w) / 2;
+                            y = canvasDim.y - yScroll + canvasDim.h + 8;
+                        }
+                    }
+                }
+                this.div.style.left = (x + xScroll) + "px";
+                this.div.style.top = (y + yScroll) + "px";
+            }
             this.div.style.display = b ? 'block' : 'none';
             if (!b && this.subMenu != -1) {
                 this.closeSubMenu();
@@ -1885,8 +1932,8 @@ var fe;
             e.preventDefault();
             console.log("e %o", e);
             var r = this.div.getBoundingClientRect();
-            this.movingDx = e.clientX - r.left;
-            this.movingDy = e.clientY - r.top;
+            this.movingDx = e.clientX - r.left - (document.body.scrollLeft || document.documentElement.scrollLeft);
+            this.movingDy = e.clientY - r.top - (document.body.scrollTop || document.documentElement.scrollTop);
             this.fp.requestFocus();
         };
         Toolbar.prototype.onMouseMove = function (e) {
@@ -1901,6 +1948,27 @@ var fe;
         Toolbar.prototype.onMouseUp = function (e) {
             e.preventDefault();
             this.movingDx = -1;
+        };
+        Toolbar.prototype.getAbsDim = function (el) {
+            var xPos = 0;
+            var yPos = 0;
+            var w = el.clientWidth;
+            var h = el.clientHeight;
+            while (el) {
+                if (el.tagName == "BODY") {
+                    xPos += (el.offsetLeft + el.clientLeft);
+                    yPos += (el.offsetTop + el.clientTop);
+                }
+                else {
+                    // for all other non-BODY elements
+                    /*                xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+                                    yPos += (el.offsetTop - el.scrollTop + el.clientTop);*/
+                    xPos += (el.offsetLeft + el.scrollLeft + el.clientLeft);
+                    yPos += (el.offsetTop + el.scrollTop + el.clientTop);
+                }
+                el = (el.offsetParent);
+            }
+            return { x: xPos, y: yPos, w: w, h: h };
         };
         return Toolbar;
     }());
@@ -1918,7 +1986,7 @@ var fe;
             var fm = this.fp.getFontMetrics(0, this.iFontSize);
             this.dim.h1 = fe.Term.correctAscent(fm.getAscent());
             this.dim.h2 = fm.getDescent(); // fm.getDescent();
-            this.dim.w = 0; // TEST fm.getAscent() / 4; // tm.width / 2;
+            this.dim.w = (this.next == null && this.prev == null) ? fm.getAscent() / 4 : 0; // tm.width / 2;
         };
         EmptyTerm.prototype.paint = function (g, x, y) {
             if (this.next == null) {

@@ -1,3 +1,11 @@
+/**
+ * This code is mainly from
+ *
+ * https://soulwire.github.io/FontMetrics/
+ * A lightweight JavaScript library for computing accurate font metrics such as x-height, cap height, ascent, descent and tittle for any loaded web font.
+ *
+ * and just adapted to typescript.
+ */
 namespace fe {
     export class FontMetrics {
         private initialized = false;

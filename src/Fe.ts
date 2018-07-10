@@ -62,7 +62,7 @@ namespace fe {
                         tbPara.push(para['menu'+i]);
                     else
                         break;
-                this.toolbar = new Toolbar(this.ff, this.assetsPath, this.oldStyle, tbPara);
+                this.toolbar = new Toolbar(this.ff, this.assetsPath, this.oldStyle, tbPara, para['menutitle'] || 'Tools');
                 this.toolbar.setVisible(true);
                 canvas.focus();
             }

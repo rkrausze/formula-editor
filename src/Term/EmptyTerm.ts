@@ -10,7 +10,7 @@ namespace fe {
             let fm: FontMetrics = this.fp.getFontMetrics(0, this.iFontSize);
             this.dim.h1 = Term.correctAscent(fm.getAscent());
             this.dim.h2 = fm.getDescent(); // fm.getDescent();
-            this.dim.w = 0; // TEST fm.getAscent() / 4; // tm.width / 2;
+            this.dim.w = (this.next == null && this.prev == null) ? fm.getAscent() / 4 : 0; // tm.width / 2;
         }
 
         paint(g: HTMLCanvasElement, x: number, y: number): void {
