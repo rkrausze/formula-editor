@@ -7,6 +7,10 @@
     "name": "Rüdiger Krauße",
     "email": "mail@krausze.de"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rkrausze/formula-editor"
+  },
   "devDependencies": {
     "typescript": "^2.7.2",
     "uglify-js": "latest"
