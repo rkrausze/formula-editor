@@ -263,7 +263,7 @@ var fe;
         };
         Term.prototype.insertChainAsNext = function (t) {
             t.prev = this;
-            if (this.next != null) {
+            if (this.next != null) { // abkürzen, wenn this letztes Kettenelement
                 var l = t.last();
                 l.next = this.next;
                 if (l.next != null)
@@ -386,7 +386,7 @@ var fe;
         // vertikal
         Term.prototype.down = function (marking, markBegin) {
             var help;
-            if (!marking || markBegin != this) {
+            if (!marking || markBegin != this) { // keine Enterversuche, wenn
                 // Objekt schon markiert ist
                 if (this.next != null && (help = this.next.cursorEnterDown()) != null)
                     return marking ? this.next : help;
@@ -522,7 +522,7 @@ var fe;
             }
         };
         FormulaPanel.prototype.calcDim = function (g) {
-            if (this.first) {
+            if (this.first) { // initialisieren
                 for (var type = 0; type < FormulaPanel.nFontType; type++) {
                     this.fontMetrics[type] = [];
                     for (var size = 0; size < FormulaPanel.nFontSize; size++)
@@ -797,36 +797,36 @@ var fe;
                 }
                 e.preventDefault();
             }
-            else if (key == "Delete" && this.markBegin != null) {
+            else if (key == "Delete" && this.markBegin != null) { // etwas markiert
                 this.deleteMark();
             }
-            else if (key == "Delete" && this.cursor.next != null) {
+            else if (key == "Delete" && this.cursor.next != null) { // nichts
                 // markiert
-                if ((this.cursor.next.getBehavior() & fe.Term.SIMPLE_DELETE) != 0) {
+                if ((this.cursor.next.getBehavior() & fe.Term.SIMPLE_DELETE) != 0) { // löschen
                     this.cursor.next = this.cursor.next.next;
                     if (this.cursor.next != null)
                         this.cursor.next.prev = this.cursor;
                 }
-                else {
+                else { // markieren
                     this.markBegin = this.cursor;
                     this.markEnd = this.cursor.next;
                 }
             }
-            else if (key == "Backspace" && this.markBegin != null) {
+            else if (key == "Backspace" && this.markBegin != null) { // etwas markiert
                 this.deleteMark();
             }
-            else if (key == "Backspace") {
-                if (this.cursor.prev != null && (this.cursor.getBehavior() & fe.Term.SIMPLE_DELETE) != 0) {
+            else if (key == "Backspace") { // nichts markiert
+                if (this.cursor.prev != null && (this.cursor.getBehavior() & fe.Term.SIMPLE_DELETE) != 0) { // löschen
                     this.cursor = this.cursor.prev;
                     this.cursor.next = this.cursor.next.next;
                     if (this.cursor.next != null)
                         this.cursor.next.prev = this.cursor;
                 }
-                else if (this.cursor.prev != null) {
+                else if (this.cursor.prev != null) { // markieren
                     this.markBegin = this.cursor.prev;
                     this.markEnd = this.cursor;
                 }
-                else if (this.cursor.parent != null) {
+                else if (this.cursor.parent != null) { // markieren
                     this.markBegin = this.cursor.parent.prev;
                     this.markEnd = this.cursor.parent;
                 }
@@ -837,11 +837,11 @@ var fe;
             e.preventDefault();
             var c = e.key;
             console.log("keyPress: " + c);
-            if (c == '^' && this.powIndKeys) {
+            if (c == '^' && this.powIndKeys) { // nichts markiert
                 this.exec("new \\power#");
                 return;
             }
-            if (c == '_' && this.powIndKeys) {
+            if (c == '_' && this.powIndKeys) { // nichts markiert
                 this.exec("new \\index#");
                 return;
             }
@@ -981,7 +981,11 @@ var fe;
                         this.markEnd = p;
                         this.cursor = this.markEnd;
                     }
-                    else if (tc1.term.inSameChainInfront(tc2.term)) {
+                    // tc1.parent (== tc2.parent) ist gemeinsames parent
+                    // d.h. tc1.term und tc2.term liegen entweder in der selben
+                    // Unterkette von
+                    // tc1.parent oder in verschiedenen
+                    else if (tc1.term.inSameChainInfront(tc2.term)) { // selbe
                         // Kette ,
                         // tc2 ...
                         // tc1
@@ -989,7 +993,7 @@ var fe;
                         this.markEnd = tc1.term;
                         this.cursor = this.markBegin;
                     }
-                    else if (tc1.term.inSameChainAfter(tc2.term)) {
+                    else if (tc1.term.inSameChainAfter(tc2.term)) { // selbe
                         // Kette ,
                         // tc1 ...
                         // tc2
@@ -997,7 +1001,7 @@ var fe;
                         this.markEnd = tc2.term;
                         this.cursor = this.markEnd;
                     }
-                    else {
+                    else { // verschiedene Ketten, also parent markieren
                         var p = tc1.term.parent;
                         this.markBegin = p.prev != null ? p.prev : p;
                         this.markEnd = p;
@@ -1088,13 +1092,13 @@ var fe;
             // Area
             if (para["area"] != null) {
                 if (typeof para["area"] == 'object') {
-                    if (typeof para["area"][0] == 'object') {
+                    if (typeof para["area"][0] == 'object') { // multiple areas
                         for (var _i = 0, _a = para["area"]; _i < _a.length; _i++) {
                             var a = _a[_i];
                             this.fp.addColorArea(new fe.ColorArea(a));
                         }
                     }
-                    else {
+                    else { // one area
                         this.fp.addColorArea(new fe.ColorArea(para["area"]));
                     }
                 }
@@ -1458,10 +1462,13 @@ var fe;
                     eVCollect = 99999;
                 if (aBracket != 99999 && eBracket != 99999)
                     sOut = MathePadConverter.DoBracket(s, aBracket, eBracket, 0, 0, oldStyle); // "(",
+                // ")");
                 else if (aEBracket != 99999 && eEBracket != 99999)
                     sOut = MathePadConverter.DoBracket(s, aEBracket, eEBracket, 0, 1, oldStyle); // "[",
+                // "]");
                 else if (aVCollect != 99999 && eVCollect != 99999)
                     sOut = MathePadConverter.DoBracket(s, aVCollect, eVCollect, 1, 2, oldStyle); // "{",
+                // "}");
                 else if (aCollect != 99999 && eCollect != 99999) {
                     var sPre = MathePadConverter.Text2mh(s.substring(0, aCollect), oldStyle);
                     if (eCollect < aCollect) {
@@ -1501,7 +1508,16 @@ var fe;
         */
         MathePadConverter.mCode = [
             // new MCode(" ", 0, ""),
-            new fe.MCode("=>", 0, "\u21D2"), new fe.MCode("<=>", 0, "\u21D4"), new fe.MCode(";", 0, "; "), new fe.MCode("\\in", 0, "\u220A"), new fe.MCode("\\notin", 0, "\u2209"), new fe.MCode("\\subset", 2, "\u2282"), new fe.MCode("\\subseteq", 1, "\u2286"), new fe.MCode("\\supset", 2, "\u2283"), new fe.MCode("\\supseteq", 1, "\u2287"), new fe.MCode("\\notsubset", 2, "\u2284"), new fe.MCode("\\all", 2, "\u2200"), new fe.MCode("\\exist", 2, "\u2203"), new fe.MCode("<=", 3, "\u2264"), new fe.MCode(">=", 3, "\u2265"), new fe.MCode("\\asymp", 4, "\u2248"), new fe.MCode("\\to", 4, "\u2192"), new fe.MCode("=", 4, " = "), new fe.MCode("\\ne", 4, "\u2260"), new fe.MCode("<", 4, " < "), new fe.MCode(">", 4, " > "), new fe.MCode("| ", 4, "| "), new fe.MCode("|", 4, "|"), new fe.MCode("\\over", 4, "2@above"), new fe.MCode("\\cup", 5, "\u22C3"), new fe.MCode("\\cap", 6, "\u22C2"), new fe.MCode("+", 7, "+"), new fe.MCode("-", 7, "-"), new fe.MCode("\\pm", 7, "\u00B1"),
+            new fe.MCode("=>", 0, "\u21D2"), new fe.MCode("<=>", 0, "\u21D4"), new fe.MCode(";", 0, "; "), new fe.MCode("\\in", 0, "\u220A"), new fe.MCode("\\notin", 0, "\u2209"),
+            new fe.MCode("\\subset", 2, "\u2282"), new fe.MCode("\\subseteq", 1, "\u2286"), new fe.MCode("\\supset", 2, "\u2283"), new fe.MCode("\\supseteq", 1, "\u2287"),
+            new fe.MCode("\\notsubset", 2, "\u2284"), new fe.MCode("\\all", 2, "\u2200"), new fe.MCode("\\exist", 2, "\u2203"),
+            new fe.MCode("<=", 3, "\u2264"), new fe.MCode(">=", 3, "\u2265"),
+            new fe.MCode("\\asymp", 4, "\u2248"), new fe.MCode("\\to", 4, "\u2192"), new fe.MCode("=", 4, " = "),
+            new fe.MCode("\\ne", 4, "\u2260"), new fe.MCode("<", 4, " < "), new fe.MCode(">", 4, " > "), new fe.MCode("| ", 4, "| "), new fe.MCode("|", 4, "|"),
+            new fe.MCode("\\over", 4, "2@above"),
+            new fe.MCode("\\cup", 5, "\u22C3"),
+            new fe.MCode("\\cap", 6, "\u22C2"),
+            new fe.MCode("+", 7, "+"), new fe.MCode("-", 7, "-"), new fe.MCode("\\pm", 7, "\u00B1"), new fe.MCode("\\mp", 7, "\u2213"),
             // new MCode("-", 7, '-'),
             new fe.MCode("*", 8, "\u2027"),
             new fe.MCode(": ", 8, ": "), new fe.MCode(":", 8, ":"), new fe.MCode("/", 8, "2@frac"),
@@ -1509,7 +1525,8 @@ var fe;
             // valign=middle nowrap style="white-space:nowrap;">", "</td><td
             // align=center valign=middle nowrap>", "</td></tr></table>",
             // '&nbsp;'),
-            new fe.MCode("_", 9, "_"), new fe.MCode("^", 9, "^"), new fe.MCode("\\root", 10, "1@root"), new fe.MCode("\\nroot", 10, "2R@rootn"), new fe.MCode("\\per", 10, "1@overline"), new fe.MCode("\\u", 10, "1@underline"), new fe.MCode("\\du", 10, "1@dunderline")
+            new fe.MCode("_", 9, "_"), new fe.MCode("^", 9, "^"),
+            new fe.MCode("\\root", 10, "1@root"), new fe.MCode("\\nroot", 10, "2R@rootn"), new fe.MCode("\\per", 10, "1@overline"), new fe.MCode("\\u", 10, "1@underline"), new fe.MCode("\\du", 10, "1@dunderline")
         ];
         MathePadConverter.mChar = ["\\null", "\u2205", "\\sigmaf", "\u03C2", "\\thetasym", "\u03D1", "\\ypsih", "\u03D2", "\\asterisk", "\u22C6",
             "\\Alpha", "\u0391", "\\Beta", "\u0392", "\\Gamma", "\u0393", "\\Delta", "\u0394", "\\Epsilon", "\u0395", "\\Zeta", "\u0396", "\\Eta", "\u0397", "\\Theta", "\u0398", "\\Iota", "\u0399", "\\Kappa", "\u039A", "\\Lambda", "\u039B", "\\Mu", "\u039C", "\\Nu", "\u039D", "\\Xi", "\u039E", "\\Omicron", "\u039F", "\\Pi", "\u03A0", "\\Rho", "\u03A1", "\\Sigma", "\u03A3", "\\Tau", "\u03A4", "\\Upsilon", "\u03A5", "\\Phi", "\u03A6", "\\Chi", "\u03A7", "\\Psi", "\u03A8", "\\Omega", "\u03A9",
@@ -1648,6 +1665,7 @@ var fe;
             this.movingDx = -1;
             this.movingDy = -1;
             fp.toolbar = this;
+            // insert the css-file
             var fileref = document.createElement("link");
             fileref.setAttribute("rel", "stylesheet");
             fileref.setAttribute("type", "text/css");
@@ -1703,7 +1721,7 @@ var fe;
                 // Sonderzeichen
                 if (para[i] == "special" || para[i] == "standard") {
                     this.add(this.menu[this.nMenu] = new fe.TextMenuField(this, 36, 24, "", this.nMenu, "\u2264 \u2260"));
-                    var p = this.popup[this.nMenu++] = this.newPopup(96);
+                    var p = this.popup[this.nMenu++] = this.newPopup(120);
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u2264", -1, "\u2264"));
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u2265", -1, "\u2265"));
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u227A", -1, "\u227A"));
@@ -1712,6 +1730,8 @@ var fe;
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u2261", -1, "\u2261"));
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u2248", -1, "\u2248"));
                     p.add(new fe.TextMenuField(this, 20, 20, "new \u2245", -1, "\u2245"));
+                    p.add(new fe.TextMenuField(this, 20, 20, "new \u00B1", -1, "\u00B1"));
+                    p.add(new fe.TextMenuField(this, 20, 20, "new \u2213", -1, "\u2213"));
                 }
                 // Pfeile
                 if (para[i] == "arrows" || para[i] == "standard")
@@ -1795,7 +1815,7 @@ var fe;
             this.fp.requestFocus();
             var oldSubMenu = this.subMenu;
             this.closeSubMenu();
-            if (oldSubMenu == subMenu)
+            if (oldSubMenu == subMenu) // pressed again, so close only
                 return;
             // fp.menuAction = true;
             this.menu[subMenu].active = true;
@@ -2002,7 +2022,7 @@ var fe;
             return this.getLower().cursorByUp(marking, x);
         };
         DoubleContainerTerm.prototype.cursorByDownFromChild = function (child, marking, x) {
-            if (child.first() == this.getUpper())
+            if (child.first() == this.getUpper()) // steht auf oberem Teil
                 return marking ? this : this.getLower().cursorByDown(marking, x);
             else if (this.parent != null)
                 return this.parent.cursorByDownFromChild(this, marking, x);
@@ -2010,7 +2030,7 @@ var fe;
                 return null;
         };
         DoubleContainerTerm.prototype.cursorByUpFromChild = function (child, marking, x) {
-            if (child.first() == this.getLower())
+            if (child.first() == this.getLower()) // steht auf unterem Teil
                 return marking ? this : this.getUpper().cursorByUp(marking, x);
             else if (this.parent != null)
                 return this.parent.cursorByUpFromChild(this, marking, x);
@@ -2033,7 +2053,7 @@ var fe;
             if (this.d2.isIn(x - this.x - this.dx2, y - this.y - this.dy2))
                 return this.con2.fromXY(x, y);
             // oben oder unten
-            if (y < this.y + (this.dy1 + this.dy2 + (this.mainIsTop ? this.d1.h2 - this.d2.h1 : this.d2.h2 - this.d1.h1)) / 2)
+            if (y < this.y + (this.dy1 + this.dy2 + (this.mainIsTop ? this.d1.h2 - this.d2.h1 : this.d2.h2 - this.d1.h1)) / 2) // oben
                 return this.getUpper().fromXY(x, y);
             return this.getLower().fromXY(x, y);
         };
@@ -2522,7 +2542,7 @@ var fe;
             return this.con[this.nTerm - 1].cursorByUp(marking, x);
         };
         MultiContainerTerm.prototype.cursorByDownFromChild = function (child, marking, x) {
-            if (child.first() != this.con[this.nTerm - 1])
+            if (child.first() != this.con[this.nTerm - 1]) // steht nicht auf unterstem
                 // Child
                 return marking ? this : this.con[this.getTermNr(child.first()) + 1].cursorByDown(marking, x);
             else if (this.parent != null)
@@ -2531,7 +2551,7 @@ var fe;
                 return null;
         };
         MultiContainerTerm.prototype.cursorByUpFromChild = function (child, marking, x) {
-            if (child.first() != this.con[0])
+            if (child.first() != this.con[0]) // steht auf unterem Teil
                 return marking ? this : this.con[this.getTermNr(child.first()) - 1].cursorByUp(marking, x);
             else if (this.parent != null)
                 return this.parent.cursorByUpFromChild(this, marking, x);
@@ -2655,41 +2675,6 @@ var fe;
     }(fe.MultiContainerTerm));
     fe.OverUnderTerm = OverUnderTerm;
 })(fe || (fe = {}));
-/// <reference path="SingleContainerTerm.ts" />
-var fe;
-(function (fe) {
-    var PowerTerm = /** @class */ (function (_super) {
-        __extends(PowerTerm, _super);
-        function PowerTerm(fp, parent) {
-            return _super.call(this, fp, parent) || this;
-        }
-        PowerTerm.prototype.calcDim = function (iFontSize, g) {
-            // Dim der Teilterme
-            this.d.copy(0, 0, 0);
-            this.con.calcDimAll(iFontSize + 1, this.d, g);
-            var m = this.prev.getHighestMiddle();
-            var lh = 1; // fp.getLineThickness(iFontSize);
-            this.dx = 0;
-            this.dy = -this.d.h2 - m - lh;
-            this.dim.w = this.d.w;
-            this.dim.h1 = -this.dy + this.d.h1;
-            this.dim.h2 = this.dy + this.d.h2;
-        };
-        PowerTerm.prototype.getCursorDim = function () {
-            var dc = this.fp.getFontDim(0, this.iFontSize);
-            dc.w = this.dim.w;
-            return dc;
-        };
-        PowerTerm.prototype.toString = function () {
-            return "^{" + this.con + "}";
-        };
-        PowerTerm.prototype.toMPad = function () {
-            return "^{" + this.con.toMPadAll() + "}";
-        };
-        return PowerTerm;
-    }(fe.SingleContainerTerm));
-    fe.PowerTerm = PowerTerm;
-})(fe || (fe = {}));
 /// <reference path="DoubleContainerTerm.ts" />
 var fe;
 (function (fe) {
@@ -2732,6 +2717,41 @@ var fe;
         return PowIndTerm;
     }(fe.DoubleContainerTerm));
     fe.PowIndTerm = PowIndTerm;
+})(fe || (fe = {}));
+/// <reference path="SingleContainerTerm.ts" />
+var fe;
+(function (fe) {
+    var PowerTerm = /** @class */ (function (_super) {
+        __extends(PowerTerm, _super);
+        function PowerTerm(fp, parent) {
+            return _super.call(this, fp, parent) || this;
+        }
+        PowerTerm.prototype.calcDim = function (iFontSize, g) {
+            // Dim der Teilterme
+            this.d.copy(0, 0, 0);
+            this.con.calcDimAll(iFontSize + 1, this.d, g);
+            var m = this.prev.getHighestMiddle();
+            var lh = 1; // fp.getLineThickness(iFontSize);
+            this.dx = 0;
+            this.dy = -this.d.h2 - m - lh;
+            this.dim.w = this.d.w;
+            this.dim.h1 = -this.dy + this.d.h1;
+            this.dim.h2 = this.dy + this.d.h2;
+        };
+        PowerTerm.prototype.getCursorDim = function () {
+            var dc = this.fp.getFontDim(0, this.iFontSize);
+            dc.w = this.dim.w;
+            return dc;
+        };
+        PowerTerm.prototype.toString = function () {
+            return "^{" + this.con + "}";
+        };
+        PowerTerm.prototype.toMPad = function () {
+            return "^{" + this.con.toMPadAll() + "}";
+        };
+        return PowerTerm;
+    }(fe.SingleContainerTerm));
+    fe.PowerTerm = PowerTerm;
 })(fe || (fe = {}));
 /// <reference path="DoubleContainerTerm.ts" />
 var fe;
@@ -3019,18 +3039,18 @@ var fe;
                     continue;
                 }
                 var c = sp.nextChar();
-                if (c == '}')
+                if (c == '}') // Parameterende
                     return base;
-                else if (c == '#') {
+                else if (c == '#') { // insert
                     if (insert != null) {
                         insert.setParentAll(parent);
                         t.insertChainAsNext(insert);
                         t = t.next;
                     }
                 }
-                else if (c == '_') {
+                else if (c == '_') { // Index
                     var con = TermFactory.readStringPara(sp, fp, null, insert);
-                    if (sp.checkNextChar() == '^') {
+                    if (sp.checkNextChar() == '^') { // PowInd
                         t.insertAsNext(dct = new fe.PowIndTerm(fp, parent));
                         t = t.next;
                         con.setParentAll(t);
@@ -3038,16 +3058,16 @@ var fe;
                         sp.nextChar();
                         dct.con1 = TermFactory.readStringPara(sp, fp, dct, insert);
                     }
-                    else {
+                    else { // nur Index
                         t.insertAsNext(sct = new fe.IndexTerm(fp, parent));
                         t = t.next;
                         con.setParentAll(t);
                         sct.con = con;
                     }
                 }
-                else if (c == '^') {
+                else if (c == '^') { // Power
                     var con = TermFactory.readStringPara(sp, fp, null, insert);
-                    if (sp.checkNextChar() == '_') {
+                    if (sp.checkNextChar() == '_') { // PowInd
                         t.insertAsNext(dct = new fe.PowIndTerm(fp, parent));
                         t = t.next;
                         con.setParentAll(t);
@@ -3055,23 +3075,23 @@ var fe;
                         sp.nextChar();
                         dct.con2 = TermFactory.readStringPara(sp, fp, dct, insert);
                     }
-                    else {
+                    else { // nur Power
                         t.insertAsNext(sct = new fe.PowerTerm(fp, parent));
                         t = t.next;
                         con.setParentAll(t);
                         sct.con = con;
                     }
                 }
-                else if (c != '\\') {
+                else if (c != '\\') { // SimpleTerm ?
                     t.insertAsNext(new fe.SimpleTerm(fp, parent, "" + c, curFontIndex));
                     t = t.next;
                 }
-                else if (sp.checkNextChar() == '\\') {
+                else if (sp.checkNextChar() == '\\') { // SimpleTerm ?
                     t.insertAsNext(new fe.SimpleTerm(fp, parent, "\\", curFontIndex));
                     t = t.next;
                     sp.nextChar();
                 }
-                else {
+                else { // komplexer Term
                     // Termnamen lesen
                     var sbName = "";
                     while (!sp.eof()) {

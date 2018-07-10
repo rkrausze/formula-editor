@@ -24,7 +24,16 @@ namespace fe {
         */
         static mCode:MCode[] = [
         // new MCode(" ", 0, ""),
-                new MCode("=>", 0, "\u21D2"), new MCode("<=>", 0, "\u21D4"), new MCode(";", 0, "; "), new MCode("\\in", 0, "\u220A"), new MCode("\\notin", 0, "\u2209"), new MCode("\\subset", 2, "\u2282"), new MCode("\\subseteq", 1, "\u2286"), new MCode("\\supset", 2, "\u2283"), new MCode("\\supseteq", 1, "\u2287"), new MCode("\\notsubset", 2, "\u2284"), new MCode("\\all", 2, "\u2200"), new MCode("\\exist", 2, "\u2203"), new MCode("<=", 3, "\u2264"), new MCode(">=", 3, "\u2265"), new MCode("\\asymp", 4, "\u2248"), new MCode("\\to", 4, "\u2192"), new MCode("=", 4, " = "), new MCode("\\ne", 4, "\u2260"), new MCode("<", 4, " < "), new MCode(">", 4, " > "), new MCode("| ", 4, "| "), new MCode("|", 4, "|"), new MCode("\\over", 4, "2@above"), new MCode("\\cup", 5, "\u22C3"), new MCode("\\cap", 6, "\u22C2"), new MCode("+", 7, "+"), new MCode("-", 7, "-"), new MCode("\\pm", 7, "\u00B1"),
+                new MCode("=>", 0, "\u21D2"), new MCode("<=>", 0, "\u21D4"), new MCode(";", 0, "; "), new MCode("\\in", 0, "\u220A"), new MCode("\\notin", 0, "\u2209"),
+                    new MCode("\\subset", 2, "\u2282"), new MCode("\\subseteq", 1, "\u2286"), new MCode("\\supset", 2, "\u2283"), new MCode("\\supseteq", 1, "\u2287"),
+                    new MCode("\\notsubset", 2, "\u2284"), new MCode("\\all", 2, "\u2200"), new MCode("\\exist", 2, "\u2203"),
+                new MCode("<=", 3, "\u2264"), new MCode(">=", 3, "\u2265"),
+                new MCode("\\asymp", 4, "\u2248"), new MCode("\\to", 4, "\u2192"), new MCode("=", 4, " = "),
+                    new MCode("\\ne", 4, "\u2260"), new MCode("<", 4, " < "), new MCode(">", 4, " > "), new MCode("| ", 4, "| "), new MCode("|", 4, "|"),
+                    new MCode("\\over", 4, "2@above"),
+                new MCode("\\cup", 5, "\u22C3"),
+                new MCode("\\cap", 6, "\u22C2"),
+                new MCode("+", 7, "+"), new MCode("-", 7, "-"), new MCode("\\pm", 7, "\u00B1"), new MCode("\\mp", 7, "\u2213"),
                 // new MCode("-", 7, '-'),
                 new MCode("*", 8, "\u2027"), // 2219
                 new MCode(": ", 8, ": "), new MCode(":", 8, ":"), new MCode("/", 8, "2@frac"),
@@ -32,7 +41,9 @@ namespace fe {
                 // valign=middle nowrap style="white-space:nowrap;">", "</td><td
                 // align=center valign=middle nowrap>", "</td></tr></table>",
                 // '&nbsp;'),
-                new MCode("_", 9, "_"), new MCode("^", 9, "^"), new MCode("\\root", 10, "1@root"), new MCode("\\nroot", 10, "2R@rootn"), new MCode("\\per", 10, "1@overline"), new MCode("\\u", 10, "1@underline"), new MCode("\\du", 10, "1@dunderline") ];
+                new MCode("_", 9, "_"), new MCode("^", 9, "^"),
+                new MCode("\\root", 10, "1@root"), new MCode("\\nroot", 10, "2R@rootn"), new MCode("\\per", 10, "1@overline"), new MCode("\\u", 10, "1@underline"), new MCode("\\du", 10, "1@dunderline")
+        ];
 
         static mChar:string[] = [ "\\null", "\u2205", "\\sigmaf", "\u03C2", "\\thetasym", "\u03D1", "\\ypsih", "\u03D2", "\\asterisk", "\u22C6",
 

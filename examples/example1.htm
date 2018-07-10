@@ -1,0 +1,33 @@
+<html>
+    <head>
+        <script src="../dist/fe.min.js"></script>
+    </head>
+    <body>
+		<p> This is a simple example of two fe-fields. Look at the source of the HTML-File.<p>
+		<ol>
+			<li>The fe.js is included in head.</li>
+			<li>Two canvas elements are embedded.</li>
+			<li>In a Javascript-block at the end of file these canvas elements are used with the fe.FE-constructor to turn them into fe-panels and init with the formulas.
+		</ol>
+		<p>Example:</p>
+		
+        <p>
+			This is an initially empty formula field:
+			<canvas id="can1" width="200" height="50" tabIndex="0" style="margin-bottom:-17px"></canvas>
+		</p>
+		<p>
+			This field is pre-filled:
+			<canvas id="can2" width="200" height="50" tabIndex="0" style="margin-bottom:-17px"></canvas>
+		</p>
+        <script type="text/javascript">
+                var fe1 = new fe.Fe(document.getElementById('can1'), {
+					assets: '../assets/'
+                });
+                var fe2 = new fe.Fe(document.getElementById('can2'), {
+                    value: 's = \\overunder{\u03A3}{n}{i=1} a_i',
+					assets: '../assets/',
+                });
+        </script>
+
+    </body>
+</html>

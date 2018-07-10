@@ -1,0 +1,20 @@
+{
+  "name": "formula-editor",
+  "version": "1.0.0",
+  "description": "Formula editor in TS/JS for integration into web pages",
+  "license": "MIT",
+  "author": {
+    "name": "Rüdiger Krauße",
+    "email": "mail@krausze.de"
+  },
+  "devDependencies": {
+    "typescript": "^2.7.2",
+    "uglify-js": "latest"
+  },
+  "scripts": {
+    "tsc": "tsc",
+    "minify": "uglifyjs --compress -o dist/fe.min.js --mangle -b beautify=false,ascii_only=true dist/fe.js --source-map",
+    "build": "npm run tsc",
+    "build-min": "npm run build & npm run minify"
+  }
+}

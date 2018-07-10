@@ -24,6 +24,7 @@ namespace fe {
         constructor(public fp: FormulaField, public assetPath: string, public oldStyle: boolean, para: string[] = null) {
             fp.toolbar = this;
 
+            // insert the css-file
             var fileref=document.createElement("link")
             fileref.setAttribute("rel", "stylesheet")
             fileref.setAttribute("type", "text/css")
@@ -80,7 +81,7 @@ namespace fe {
                 // Sonderzeichen
                 if (para[i] == "special" || para[i] == "standard") {
                     this.add(this.menu[this.nMenu] = new TextMenuField(this, 36, 24, "", this.nMenu, "\u2264 \u2260"));
-                    let p: PopupMenu = this.popup[this.nMenu++] = this.newPopup(96);
+                    let p: PopupMenu = this.popup[this.nMenu++] = this.newPopup(120);
                     p.add(new TextMenuField(this, 20, 20, "new \u2264", -1, "\u2264"));
                     p.add(new TextMenuField(this, 20, 20, "new \u2265", -1, "\u2265"));
                     p.add(new TextMenuField(this, 20, 20, "new \u227A", -1, "\u227A"));
@@ -89,6 +90,8 @@ namespace fe {
                     p.add(new TextMenuField(this, 20, 20, "new \u2261", -1, "\u2261"));
                     p.add(new TextMenuField(this, 20, 20, "new \u2248", -1, "\u2248"));
                     p.add(new TextMenuField(this, 20, 20, "new \u2245", -1, "\u2245"));
+                    p.add(new TextMenuField(this, 20, 20, "new \u00B1", -1, "\u00B1"));
+                    p.add(new TextMenuField(this, 20, 20, "new \u2213", -1, "\u2213"));
                 }
                 // Pfeile
                 if (para[i] == "arrows" || para[i] == "standard")
