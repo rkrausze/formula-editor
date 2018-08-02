@@ -36,6 +36,8 @@ namespace fe {
         x: number;
         y: number;
 
+        factor = -1; // = window.devicePixelRatio for smarter graphics
+
         baseline = -1; // -1 => egal, also zentriert
 
         backgroundColor: string = "#FFFFFF";
@@ -58,11 +60,28 @@ namespace fe {
             this.term = sInitTerm != null ? TermFactory.readStringS1(sInitTerm, this, null) : new EmptyTerm(this, null);
             this.baseFontSize = baseFontSize;
             this.d = new Dim(0, 0, 0);
+            // deal with device pixels => factor
+            if ( this.factor == -1 )
+                this.factor = window.devicePixelRatio;
+            let ctx = this.canvas.getContext('2d');
+            if ( ctx['webkitBackingStorePixelRatio'] && ctx['webkitBackingStorePixelRatio'] > 1 )
+                this.factor = 1;
+            if ( this.factor > 1 ) {
+                let canvasWidth = parseInt(this.canvas.getAttribute("width"));
+                let canvasHeight = parseInt(this.canvas.getAttribute("height"));
+
+                this.canvas.style.width = canvasWidth+"px";
+                this.canvas.style.height = canvasHeight+"px";
+                this.canvas.setAttribute("width", <any>(canvasWidth*this.factor));
+                this.canvas.setAttribute("height", <any>(canvasHeight*this.factor));
+                //ctx.transform(this.factor,0,0,this.factor,0,0);
+                //ctx.scale(this.factor, this.factor);
+            }
             // Fonts laden
             for (let type = 0; type < FormulaPanel.nFontType; type++) {
                 this.font[type] = [];
                 for (let size = 0; size < FormulaPanel.nFontSize; size++)
-                    this.font[type][size] = FormulaPanel.FontSize[size]+ "px "+FormulaPanel.FontType[type];
+                    this.font[type][size] = (FormulaPanel.FontSize[size]*this.factor)+ "px "+FormulaPanel.FontType[type];
             }
         }
 
@@ -71,7 +90,7 @@ namespace fe {
                 for (let type = 0; type < FormulaPanel.nFontType; type++) {
                     this.fontMetrics[type] = [];
                     for (let size = 0; size < FormulaPanel.nFontSize; size++)
-                        this.fontMetrics[type][size] = new FontMetrics({fontFamily: FormulaPanel.FontType[type], fontSize: FormulaPanel.FontSize[size]});
+                        this.fontMetrics[type][size] = new FontMetrics({fontFamily: FormulaPanel.FontType[type], fontSize: FormulaPanel.FontSize[size]*this.factor});
                 }
                 this.width = this.canvas.width;
                 this.height = this.canvas.height;
@@ -170,7 +189,7 @@ namespace fe {
         }
 
         getLineThickness(size: number): number {
-            return ((2 - size) / 2) + 1;
+            return ((2 - size) / 2) * this.factor + 1;
         }
 
         getMPad(): string {

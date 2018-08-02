@@ -507,6 +507,7 @@ var fe;
             this.baseFontSize = 0;
             // für Initialisierung der Fontmetrics
             this.first = true;
+            this.factor = -1; // = window.devicePixelRatio for smarter graphics
             this.baseline = -1; // -1 => egal, also zentriert
             this.backgroundColor = "#FFFFFF";
             this.foregroundColor = "#000000";
@@ -522,11 +523,27 @@ var fe;
             this.term = sInitTerm != null ? fe.TermFactory.readStringS1(sInitTerm, this, null) : new fe.EmptyTerm(this, null);
             this.baseFontSize = baseFontSize;
             this.d = new fe.Dim(0, 0, 0);
+            // deal with device pixels => factor
+            if (this.factor == -1)
+                this.factor = window.devicePixelRatio;
+            var ctx = this.canvas.getContext('2d');
+            if (ctx['webkitBackingStorePixelRatio'] && ctx['webkitBackingStorePixelRatio'] > 1)
+                this.factor = 1;
+            if (this.factor > 1) {
+                var canvasWidth = parseInt(this.canvas.getAttribute("width"));
+                var canvasHeight = parseInt(this.canvas.getAttribute("height"));
+                this.canvas.style.width = canvasWidth + "px";
+                this.canvas.style.height = canvasHeight + "px";
+                this.canvas.setAttribute("width", (canvasWidth * this.factor));
+                this.canvas.setAttribute("height", (canvasHeight * this.factor));
+                //ctx.transform(this.factor,0,0,this.factor,0,0);
+                //ctx.scale(this.factor, this.factor);
+            }
             // Fonts laden
             for (var type = 0; type < FormulaPanel.nFontType; type++) {
                 this.font[type] = [];
                 for (var size = 0; size < FormulaPanel.nFontSize; size++)
-                    this.font[type][size] = FormulaPanel.FontSize[size] + "px " + FormulaPanel.FontType[type];
+                    this.font[type][size] = (FormulaPanel.FontSize[size] * this.factor) + "px " + FormulaPanel.FontType[type];
             }
         };
         FormulaPanel.prototype.calcDim = function (g) {
@@ -534,7 +551,7 @@ var fe;
                 for (var type = 0; type < FormulaPanel.nFontType; type++) {
                     this.fontMetrics[type] = [];
                     for (var size = 0; size < FormulaPanel.nFontSize; size++)
-                        this.fontMetrics[type][size] = new fe.FontMetrics({ fontFamily: FormulaPanel.FontType[type], fontSize: FormulaPanel.FontSize[size] });
+                        this.fontMetrics[type][size] = new fe.FontMetrics({ fontFamily: FormulaPanel.FontType[type], fontSize: FormulaPanel.FontSize[size] * this.factor });
                 }
                 this.width = this.canvas.width;
                 this.height = this.canvas.height;
@@ -620,7 +637,7 @@ var fe;
             return this.fontMetrics[0][size].getAscent() / 3;
         };
         FormulaPanel.prototype.getLineThickness = function (size) {
-            return ((2 - size) / 2) + 1;
+            return ((2 - size) / 2) * this.factor + 1;
         };
         FormulaPanel.prototype.getMPad = function () {
             return this.term.toMPadAll();
@@ -1145,6 +1162,13 @@ var fe;
             if (para['markcolor'])
                 this.fp.setMarkColor(para['fgcolor']);
             this.fp.debug = this.booleanPara(para["debug"], false);
+            // scaling for device pixels
+            if (para['factor']) {
+                if (("" + para['factor']).toUpperCase() == 'NO')
+                    this.fp.factor = 1;
+                else
+                    this.fp.factor = parseInt(para['factor']);
+            }
             // Area
             if (para["area"] != null) {
                 if (typeof para["area"] == 'object') {

@@ -39,6 +39,13 @@ namespace fe {
             if ( para['markcolor'] )
                 this.fp.setMarkColor(para['fgcolor']);
             this.fp.debug = this.booleanPara(para["debug"], false);
+            // scaling for device pixels
+            if ( para['factor'] ) {
+                if ( (""+para['factor']).toUpperCase() == 'NO' )
+                    this.fp.factor = 1;
+                else
+                    this.fp.factor = parseInt(para['factor']);
+            }
             // Area
             if ( para["area"] != null) {
                 if ( typeof para["area"] == 'object' ) {
