@@ -5,11 +5,11 @@
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<meta name="viewport" content="width=device-width, initial-scale=1">
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-		<script src="../dist/fe.min.js"></script>
+		<script src="https://rkrausze.github.io/formula-editor/dist/fe.min.js"></script>
 	</head>
 	<body>
 		<div class="container-fluid">
-			<p> This is a simple example of two fe-fields pre-filled via mpad-syntax. Look at the source of the HTML-File.<p>
+			<p> This is a simple example of two fe-fields. Look at the source of the HTML-File.<p>
 			<ol>
 				<li>The fe.min.js is included in head.</li>
 				<li>Two canvas elements are embedded.</li>
@@ -20,7 +20,7 @@
 			
 			<p>
 				This is an initially empty formula field:
-				<canvas id="can1" width="400" height="70" tabIndex="0" style="margin-bottom:-17px; border: 1px solid #ccc; border-radius: 4px;"></canvas>
+				<canvas id="can1" width="200" height="50" tabIndex="0" style="margin-bottom:-17px; border: 1px solid #ccc; border-radius: 4px;" contenteditable></canvas>
 			</p>
 			<p>
 				&nbsp;
@@ -32,11 +32,10 @@
 		</div>
 		<script type="text/javascript">
 				var fe1 = new fe.Fe(document.getElementById('can1'), {
-					mpad: '\\all \\epsilon > 0 \\exist \\delta > 0 \\all x \\in D:  |x - x_0| < \\delta => |f(x) - f(x_0)| < \\epsilon',
 					assets: '../assets/'
 				});
 				var fe2 = new fe.Fe(document.getElementById('can2'), {
-					mpad: '\\Omega = V/A',
+					value: 's = \\overunder{\u03A3}{n}{i=1} a_i',
 					assets: '../assets/',
 				});
 				document.getElementById('can1').focus();

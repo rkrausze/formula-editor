@@ -33,23 +33,46 @@ namespace fe {
 
         private doCloseToolbar: boolean;
 
+        private hiddenInput: HTMLInputElement;
+
         constructor(canvas: HTMLCanvasElement, sInitTerm: string) {
             super(canvas, sInitTerm);
             this.cursor = this.term;
-            // Listener
-            canvas.addEventListener("keypress", this.onKeyPress.bind(this));
-            canvas.addEventListener("keydown", this.onKeyDown.bind(this));
+
+            // Listeners
             canvas.addEventListener("mousedown", this.onMouseDown.bind(this));
             canvas.addEventListener("mouseup", this.onMouseUp.bind(this));
             canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
             canvas.addEventListener("focus", this.onFocus.bind(this));
-            canvas.addEventListener("blur", this.onBlur.bind(this));
+
             if (this.caretBlinks) {
                 this.caretThread = window.setInterval(
                     () => {
                         this.CaretVisible = !this.CaretVisible;
                         this.repaint();
                     }, 500);
+            }
+
+            // invisible input field (to trigger a virtual keybord at mobiles)
+            this.hiddenInput = document.createElement('input');
+            this.hiddenInput.type = 'text';
+            this.hiddenInput.style.position = 'absolute';
+            this.hiddenInput.style.opacity = "0";
+            this.hiddenInput.style.pointerEvents = 'none';
+            this.hiddenInput.style.zIndex = "0";
+            this.hiddenInput.style.backgroundColor = '#0F0';
+            // hide native blue text cursor on iOS
+            //this.hiddenInput.style.transform = 'scale(0)'; TEST
+
+            this.updateHiddenInput();
+            document.body.appendChild(this.hiddenInput);
+
+            // Listeners
+            this.hiddenInput.addEventListener("keypress", this.onHiddenInputKeyPress.bind(this));
+            this.hiddenInput.addEventListener("keydown", this.onHiddenInputKeyDown.bind(this));
+            this.hiddenInput.addEventListener("blur", this.onHiddenInputBlur.bind(this));
+            if ( navigator.userAgent.match(/Android/i) ) {
+                this.hiddenInput.addEventListener("input", this.onHiddenInputInput.bind(this)); // for android virtual keyboard
             }
         }
 
@@ -92,8 +115,13 @@ namespace fe {
             }
         }
 
+        setDim(w: number, h: number, baseline: number): void {
+            super.setDim(w, h, baseline);
+            this.updateHiddenInput();
+        }
+
         // KeyListener
-        onKeyDown(e: KeyboardEvent) {
+        onHiddenInputKeyDown(e: KeyboardEvent) {
             console.log("in keyDown");
             // e.preventDefault();
             let key: string = e.key;
@@ -197,7 +225,7 @@ namespace fe {
             this.repaint();
         }
 
-        onKeyPress(e: KeyboardEvent) {
+        onHiddenInputKeyPress(e: KeyboardEvent) {
             e.preventDefault();
             let c: string = e.key;
             console.log("keyPress: "+ c);
@@ -214,6 +242,26 @@ namespace fe {
             this.cursor.insertAsNext(new SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
             this.cursor = this.cursor.next;
             this.repaint();
+        }
+
+        /**
+         * Only used on Android. The virtual keyboard fires no usabel key events.
+         *
+         * @param {Event} e not used
+         *
+         * @memberOf FormulaField
+         */
+        onHiddenInputInput(e: Event) {
+            e.preventDefault();
+            if ( this.hiddenInput.value != "" ) {
+                if (this.markBegin != null)
+                    this.deleteMark();
+                let c = this.hiddenInput.value;
+                this.cursor.insertAsNext(new SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
+                this.cursor = this.cursor.next;
+                this.repaint();
+                this.hiddenInput.value = "";
+            }
         }
 
         // High Level Funktionen mit der Markierung
@@ -402,10 +450,11 @@ namespace fe {
                 //ensureKeyFocus = 2;
                 this.toolbar.setVisible(true);
             }
+            this.hiddenInput.focus();
         }
 
-        onBlur(e: FocusEvent) {
-            console.log("blur");
+        onHiddenInputBlur(e: FocusEvent) {
+            console.log("blur hi");
             // TODO MIG if (ensureKeyFocus > 0)
             //     ensureKeyFocus--;
             if (this.toolbar != null && this.toolbar.isVisible() /*&& this.ensureKeyFocus == 0*/)
@@ -431,5 +480,15 @@ namespace fe {
         requestFocus(): void {
             this.canvas.focus();
         }
+
+        // deal with hiddenInput
+        private updateHiddenInput(): void {
+            let ad = ElementUtils.getAbsDim(this.canvas);
+            this.hiddenInput.style.left = ad.x+'px';
+            this.hiddenInput.style.top = ad.y+'px';
+            this.hiddenInput.style.width = ad.w+'px';
+            this.hiddenInput.style.height = ad.h+'px';
+        }
+
     }
 }

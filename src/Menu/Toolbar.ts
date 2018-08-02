@@ -228,7 +228,7 @@ namespace fe {
         setVisible(b: boolean) {
             if (this.div.parentElement == null ) {
                 document.body.appendChild(this.div);
-                let canvasDim = this.getAbsDim(this.fp.canvas);
+                let canvasDim = ElementUtils.getAbsDim(this.fp.canvas);
                 let bodyDim = {w: document.body.clientWidth, h: document.body.clientHeight};
                 let tbDim = {w: 280/*this.div.clientWidth*/, h: this.div.clientHeight};
                 console.log("fp %o", canvasDim);
@@ -311,29 +311,6 @@ namespace fe {
             this.movingDx = -1;
         }
 
-        getAbsDim(el: HTMLElement) {
-            let xPos = 0;
-            let yPos = 0;
-            let w =  el.clientWidth;
-            let h =  el.clientHeight;
-
-            while (el) {
-              if (el.tagName == "BODY") {
-
-                xPos += (el.offsetLeft + el.clientLeft);
-                yPos += (el.offsetTop + el.clientTop);
-              } else {
-                // for all other non-BODY elements
-/*                xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
-                yPos += (el.offsetTop - el.scrollTop + el.clientTop);*/
-                xPos += (el.offsetLeft + el.scrollLeft + el.clientLeft);
-                yPos += (el.offsetTop + el.scrollTop + el.clientTop);
-            }
-
-              el = <HTMLElement>(el.offsetParent);
-            }
-            return { x: xPos, y: yPos, w: w, h: h };
-          }
     }
 }
 

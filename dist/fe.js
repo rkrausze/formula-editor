@@ -672,19 +672,35 @@ var fe;
             // // int onSetVisible = 0;
             _this.ensureKeyFocus = 0;
             _this.cursor = _this.term;
-            // Listener
-            canvas.addEventListener("keypress", _this.onKeyPress.bind(_this));
-            canvas.addEventListener("keydown", _this.onKeyDown.bind(_this));
+            // Listeners
             canvas.addEventListener("mousedown", _this.onMouseDown.bind(_this));
             canvas.addEventListener("mouseup", _this.onMouseUp.bind(_this));
             canvas.addEventListener("mousemove", _this.onMouseMove.bind(_this));
             canvas.addEventListener("focus", _this.onFocus.bind(_this));
-            canvas.addEventListener("blur", _this.onBlur.bind(_this));
             if (_this.caretBlinks) {
                 _this.caretThread = window.setInterval(function () {
                     _this.CaretVisible = !_this.CaretVisible;
                     _this.repaint();
                 }, 500);
+            }
+            // invisible input field (to trigger a virtual keybord at mobiles)
+            _this.hiddenInput = document.createElement('input');
+            _this.hiddenInput.type = 'text';
+            _this.hiddenInput.style.position = 'absolute';
+            _this.hiddenInput.style.opacity = "0";
+            _this.hiddenInput.style.pointerEvents = 'none';
+            _this.hiddenInput.style.zIndex = "0";
+            _this.hiddenInput.style.backgroundColor = '#0F0';
+            // hide native blue text cursor on iOS
+            //this.hiddenInput.style.transform = 'scale(0)'; TEST
+            _this.updateHiddenInput();
+            document.body.appendChild(_this.hiddenInput);
+            // Listeners
+            _this.hiddenInput.addEventListener("keypress", _this.onHiddenInputKeyPress.bind(_this));
+            _this.hiddenInput.addEventListener("keydown", _this.onHiddenInputKeyDown.bind(_this));
+            _this.hiddenInput.addEventListener("blur", _this.onHiddenInputBlur.bind(_this));
+            if (navigator.userAgent.match(/Android/i)) {
+                _this.hiddenInput.addEventListener("input", _this.onHiddenInputInput.bind(_this)); // for android virtual keyboard
             }
             return _this;
         }
@@ -726,8 +742,12 @@ var fe;
                 ctx.restore();
             }
         };
+        FormulaField.prototype.setDim = function (w, h, baseline) {
+            _super.prototype.setDim.call(this, w, h, baseline);
+            this.updateHiddenInput();
+        };
         // KeyListener
-        FormulaField.prototype.onKeyDown = function (e) {
+        FormulaField.prototype.onHiddenInputKeyDown = function (e) {
             console.log("in keyDown");
             // e.preventDefault();
             var key = e.key;
@@ -841,7 +861,7 @@ var fe;
             }
             this.repaint();
         };
-        FormulaField.prototype.onKeyPress = function (e) {
+        FormulaField.prototype.onHiddenInputKeyPress = function (e) {
             e.preventDefault();
             var c = e.key;
             console.log("keyPress: " + c);
@@ -858,6 +878,25 @@ var fe;
             this.cursor.insertAsNext(new fe.SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
             this.cursor = this.cursor.next;
             this.repaint();
+        };
+        /**
+         * Only used on Android. The virtual keyboard fires no usabel key events.
+         *
+         * @param {Event} e not used
+         *
+         * @memberOf FormulaField
+         */
+        FormulaField.prototype.onHiddenInputInput = function (e) {
+            e.preventDefault();
+            if (this.hiddenInput.value != "") {
+                if (this.markBegin != null)
+                    this.deleteMark();
+                var c = this.hiddenInput.value;
+                this.cursor.insertAsNext(new fe.SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
+                this.cursor = this.cursor.next;
+                this.repaint();
+                this.hiddenInput.value = "";
+            }
         };
         // High Level Funktionen mit der Markierung
         FormulaField.prototype.deleteMark = function () {
@@ -1030,9 +1069,10 @@ var fe;
                 //ensureKeyFocus = 2;
                 this.toolbar.setVisible(true);
             }
+            this.hiddenInput.focus();
         };
-        FormulaField.prototype.onBlur = function (e) {
-            console.log("blur");
+        FormulaField.prototype.onHiddenInputBlur = function (e) {
+            console.log("blur hi");
             // TODO MIG if (ensureKeyFocus > 0)
             //     ensureKeyFocus--;
             if (this.toolbar != null && this.toolbar.isVisible() /*&& this.ensureKeyFocus == 0*/)
@@ -1055,6 +1095,14 @@ var fe;
         };
         FormulaField.prototype.requestFocus = function () {
             this.canvas.focus();
+        };
+        // deal with hiddenInput
+        FormulaField.prototype.updateHiddenInput = function () {
+            var ad = fe.ElementUtils.getAbsDim(this.canvas);
+            this.hiddenInput.style.left = ad.x + 'px';
+            this.hiddenInput.style.top = ad.y + 'px';
+            this.hiddenInput.style.width = ad.w + 'px';
+            this.hiddenInput.style.height = ad.h + 'px';
         };
         return FormulaField;
     }(fe.FormulaPanel));
@@ -1871,7 +1919,7 @@ var fe;
         Toolbar.prototype.setVisible = function (b) {
             if (this.div.parentElement == null) {
                 document.body.appendChild(this.div);
-                var canvasDim = this.getAbsDim(this.fp.canvas);
+                var canvasDim = fe.ElementUtils.getAbsDim(this.fp.canvas);
                 var bodyDim = { w: document.body.clientWidth, h: document.body.clientHeight };
                 var tbDim = { w: 280 /*this.div.clientWidth*/, h: this.div.clientHeight };
                 console.log("fp %o", canvasDim);
@@ -1948,27 +1996,6 @@ var fe;
         Toolbar.prototype.onMouseUp = function (e) {
             e.preventDefault();
             this.movingDx = -1;
-        };
-        Toolbar.prototype.getAbsDim = function (el) {
-            var xPos = 0;
-            var yPos = 0;
-            var w = el.clientWidth;
-            var h = el.clientHeight;
-            while (el) {
-                if (el.tagName == "BODY") {
-                    xPos += (el.offsetLeft + el.clientLeft);
-                    yPos += (el.offsetTop + el.clientTop);
-                }
-                else {
-                    // for all other non-BODY elements
-                    /*                xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
-                                    yPos += (el.offsetTop - el.scrollTop + el.clientTop);*/
-                    xPos += (el.offsetLeft + el.scrollLeft + el.clientLeft);
-                    yPos += (el.offsetTop + el.scrollTop + el.clientTop);
-                }
-                el = (el.offsetParent);
-            }
-            return { x: xPos, y: yPos, w: w, h: h };
         };
         return Toolbar;
     }());
@@ -3275,5 +3302,35 @@ var fe;
         return ColorArea;
     }());
     fe.ColorArea = ColorArea;
+})(fe || (fe = {}));
+var fe;
+(function (fe) {
+    var ElementUtils = /** @class */ (function () {
+        function ElementUtils() {
+        }
+        ElementUtils.getAbsDim = function (el) {
+            var xPos = 0;
+            var yPos = 0;
+            var w = el.clientWidth;
+            var h = el.clientHeight;
+            while (el) {
+                if (el.tagName == "BODY") {
+                    xPos += (el.offsetLeft + el.clientLeft);
+                    yPos += (el.offsetTop + el.clientTop);
+                }
+                else {
+                    // for all other non-BODY elements
+                    /*                xPos += (el.offsetLeft - el.scrollLeft + el.clientLeft);
+                                        yPos += (el.offsetTop - el.scrollTop + el.clientTop);*/
+                    xPos += (el.offsetLeft + el.scrollLeft + el.clientLeft);
+                    yPos += (el.offsetTop + el.scrollTop + el.clientTop);
+                }
+                el = (el.offsetParent);
+            }
+            return { x: xPos, y: yPos, w: w, h: h };
+        };
+        return ElementUtils;
+    }());
+    fe.ElementUtils = ElementUtils;
 })(fe || (fe = {}));
 //# sourceMappingURL=fe.js.map
