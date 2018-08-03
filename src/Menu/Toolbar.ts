@@ -18,6 +18,8 @@ namespace fe {
         movingDx = -1;
         movingDy = -1;
 
+        private touchId1: number= null;
+
         div: HTMLDivElement;
         menuFieldArea: HTMLDivElement;
 
@@ -105,7 +107,9 @@ namespace fe {
             this.div.addEventListener("mousedown", this.onMouseDown.bind(this));
             this.div.addEventListener("mouseup", this.onMouseUp.bind(this));
             this.div.addEventListener("mousemove", this.onMouseMove.bind(this));
-            // addKeyListener(fp);
+            this.div.addEventListener("touchstart", this.onTouchStart.bind(this));
+            this.div.addEventListener("touchmove", this.onTouchMove.bind(this));
+            this.div.addEventListener("touchend", this.onTouchEnd.bind(this));
         }
 
         newPopup(width: number): PopupMenu {
@@ -179,29 +183,10 @@ namespace fe {
             this.closeSubMenu();
             if ( oldSubMenu == subMenu ) // pressed again, so close only
               return;
-            // fp.menuAction = true;
             this.menu[subMenu].active = true;
             this.menu[subMenu].button.classList.add('pressed');
             this.setVisible(true);
-            // menu[subMenu].repaint();
-            // Point p1 = menu[subMenu].getLocationOnScreen();
-            // // fp.focusAction = true;
             this.popup[this.subMenu = subMenu].setVisible(true, this.menu[subMenu].button.getBoundingClientRect());
-            // // p[this.subMenu = subMenu].show();
-            // Rectangle r = menu[subMenu].getBounds();
-            // p1.y += r.height;
-            // Dimension d = popup[subMenu].getPreferredSize();
-            // // p[subMenu].toFront();
-            // popup[subMenu].setBounds(p1.x, p1.y, d.width, d.height);
-            // // p[subMenu].show();
-            // if (oldStyle) {
-            //     popup[subMenu].repaint();
-            //     fp.focusAction = true;
-            //     popup[subMenu].toFront();
-            //     fp.requestFocus();
-            // }
-            // fp.closeToolbarThread = null;
-            // fp.menuAction = false;
         }
 
         closeSubMenu(): void {
@@ -277,15 +262,7 @@ namespace fe {
             return this.div.parentElement != null && this.div.style.display != 'none';
         }
 
-    //     public void windowActivated(WindowEvent e) {
-    //         if (!noticesFocus) { // z.B. version 1.3.1_18
-    //             fp.ensureKeyFocus = 4;
-    //             fp.requestFocus();
-    //             fp.hasFocus = true;
-    //         } else if (oldStyle) {
-    //             fp.ensureKeyFocus = 2;
-    //         }
-    //     }
+        // Mouse Events
 
         onMouseDown(e: MouseEvent): void {
             e.preventDefault();
@@ -309,6 +286,45 @@ namespace fe {
         onMouseUp(e: MouseEvent): void {
             e.preventDefault();
             this.movingDx = -1;
+        }
+
+        // Touch Events
+
+        onTouchStart(e: TouchEvent): void {
+            let r = this.div.getBoundingClientRect();
+            let p = e.changedTouches[0];
+            this.movingDx = p.clientX-r.left - (document.body.scrollLeft || document.documentElement.scrollLeft);
+            this.movingDy = p.clientY-r.top - (document.body.scrollTop || document.documentElement.scrollTop);
+            this.fp.requestFocus();
+            this.touchId1 = p.identifier;
+        }
+
+        onTouchMove(e: TouchEvent): void {
+            if ( this.movingDx != -1 ) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    let p = e.changedTouches.item(i);
+                    if ( p.identifier == this.touchId1 ) {
+                        this.div.style.left = (- this.movingDx + p.clientX)+"px";
+                        this.div.style.top = (- this.movingDy + p.clientY)+"px";
+                        if ( this.subMenu != -1 )
+                            this.popup[this.subMenu].setPosition(this.menu[this.subMenu].button.getBoundingClientRect());
+                    }
+                }
+                e.preventDefault();
+            }
+        }
+
+        onTouchEnd(e: TouchEvent): void {
+            if ( this.touchId1 != null ) {
+                for (let i = 0; i < e.touches.length; i++) {
+                    let p = e.touches.item(i);
+                    if ( p.identifier == this.touchId1 ) {
+                        return;
+                    }
+                }
+                this.movingDx = -1;
+                this.touchId1 = null;
+            }
         }
 
     }

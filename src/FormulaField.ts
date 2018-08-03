@@ -35,6 +35,9 @@ namespace fe {
 
         private hiddenInput: HTMLInputElement;
 
+        private touchId1: number = null;
+
+
         constructor(canvas: HTMLCanvasElement, sInitTerm: string) {
             super(canvas, sInitTerm);
             this.cursor = this.term;
@@ -44,6 +47,10 @@ namespace fe {
             canvas.addEventListener("mouseup", this.onMouseUp.bind(this));
             canvas.addEventListener("mousemove", this.onMouseMove.bind(this));
             canvas.addEventListener("focus", this.onFocus.bind(this));
+
+            canvas.addEventListener("touchstart", this.onTouchStart.bind(this));
+            canvas.addEventListener("touchmove", this.onTouchMove.bind(this));
+            canvas.addEventListener("touchend", this.onTouchEnd.bind(this));
 
             if (this.caretBlinks) {
                 this.caretThread = window.setInterval(
@@ -245,7 +252,7 @@ namespace fe {
         }
 
         /**
-         * Only used on Android. The virtual keyboard fires no usabel key events.
+         * Only used on Android. The virtual keyboard fires no usable key events.
          *
          * @param {Event} e not used
          *
@@ -332,25 +339,20 @@ namespace fe {
             }
         }
 
-        // MausActions
+        // pointer actions (used for mouse and touch)
 
-        onMouseDown(e: MouseEvent): void {
-            e.preventDefault();
+        onPointerDown(xm: number, ym: number, markStart: boolean = true): void {
             this.ensureKeyFocus = 0;
             if ( !this.hasFocus ) {
                 this.requestFocus();
             }
-            let xm = e.offsetX;
-            let ym = e.offsetY;
             if (this.d.isIn(xm - this.x, ym - this.y))
                 this.cursor = this.term.fromXY(xm, ym);
             else if (xm < this.x)
                 this.cursor = this.term;
             else if (this.x + this.d.w < xm)
                 this.cursor = this.term.last().cursorByLeft(false);
-            console.log("e: %o", e);
-            console.log("cur: %o", this.cursor);
-            if (e.button == 0) {
+            if ( markStart) {
                 this.mouseMark = true;
                 this.markBegin = null;
                 this.mouseMarkTerm1 = this.cursor;
@@ -358,17 +360,13 @@ namespace fe {
             this.repaint();
         }
 
-        onMouseUp(e: MouseEvent): void {
-            e.preventDefault();
+        onPointerUp(): void {
+            //e.preventDefault();
             this.mouseMark = false;
         }
 
-        // MouseMotions
-
-        onMouseMove(e: MouseEvent): void {
-            e.preventDefault();
-            let xm: number = e.offsetX;
-            let ym: number = e.offsetY;
+        onPointerMove(xm: number, ym: number): void {
+            //e.preventDefault();
             if (this.d.isIn(xm - this.x, ym - this.y) && this.mouseMark) {
                 this.cursor = this.term.fromXY(xm, ym);
                 this.mouseMarkTerm2 = this.cursor;
@@ -427,16 +425,58 @@ namespace fe {
             }
         }
 
-        // /*
-        // * (non-Javadoc)
-        // *
-        // * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
-        // */
-        // boolean focusAction = false;
+        // Mouse Events
 
-        // boolean menuAction = false;
+        onMouseDown(e: MouseEvent): void {
+            e.preventDefault();
+            this.onPointerDown(e.offsetX * this.factor, e.offsetY * this.factor, e.button == 0);
+        }
 
-        // // int onSetVisible = 0;
+        onMouseUp(e: MouseEvent): void {
+            e.preventDefault();
+            this.onPointerUp();
+        }
+
+        onMouseMove(e: MouseEvent): void {
+            e.preventDefault();
+            this.onPointerMove(e.offsetX * this.factor, e.offsetY * this.factor);
+        }
+
+        // Touch Events
+
+        onTouchStart(e: TouchEvent): void {
+            if (e.touches.length == 1 ) {
+                let p = e.changedTouches[0];
+                let rect = this.canvas.getBoundingClientRect();
+                this.onPointerDown((p.pageX - rect.left) * this.factor, (p.pageY - rect.top) * this.factor);
+                this.touchId1 = p.identifier;
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+
+        onTouchMove(e: TouchEvent): void {
+            if (e.touches.length == 1 && e.touches.item(0).identifier == this.touchId1 ) {
+                let p = e.touches[0];
+                let rect = this.canvas.getBoundingClientRect();
+                this.onPointerMove((p.pageX - rect.left) * this.factor, (p.pageY - rect.top) * this.factor);
+                e.preventDefault();
+            }
+        }
+
+        onTouchEnd(e: TouchEvent): void {
+            if ( this.touchId1 != null ) {
+                for (let i = 0; i < e.touches.length; i++) {
+                    let p = e.touches.item(i);
+                    if ( p.identifier == this.touchId1 ) {
+                        return;
+                    }
+                }
+                this.onPointerUp();
+                this.touchId1 = null;
+            }
+        }
+
         ensureKeyFocus: number = 0;
 
         onFocus(e: FocusEvent) {
@@ -490,5 +530,9 @@ namespace fe {
             this.hiddenInput.style.height = ad.h+'px';
         }
 
+        protected deb(s: String): void {
+            let d = document.getElementById("debug");
+            d.innerHTML = s+'<br/>'+d.innerHTML;
+        }
     }
 }

@@ -679,14 +679,7 @@ var fe;
             _this.caretBlinks = true; // Cursor blinkt
             _this.powIndKeys = true; // ob Tasten ^ und _ Power bw. Index erzeugen
             _this.caretThread = null;
-            // /*
-            // * (non-Javadoc)
-            // *
-            // * @see java.awt.event.FocusListener#focusGained(java.awt.event.FocusEvent)
-            // */
-            // boolean focusAction = false;
-            // boolean menuAction = false;
-            // // int onSetVisible = 0;
+            _this.touchId1 = null;
             _this.ensureKeyFocus = 0;
             _this.cursor = _this.term;
             // Listeners
@@ -694,6 +687,9 @@ var fe;
             canvas.addEventListener("mouseup", _this.onMouseUp.bind(_this));
             canvas.addEventListener("mousemove", _this.onMouseMove.bind(_this));
             canvas.addEventListener("focus", _this.onFocus.bind(_this));
+            canvas.addEventListener("touchstart", _this.onTouchStart.bind(_this));
+            canvas.addEventListener("touchmove", _this.onTouchMove.bind(_this));
+            canvas.addEventListener("touchend", _this.onTouchEnd.bind(_this));
             if (_this.caretBlinks) {
                 _this.caretThread = window.setInterval(function () {
                     _this.CaretVisible = !_this.CaretVisible;
@@ -897,7 +893,7 @@ var fe;
             this.repaint();
         };
         /**
-         * Only used on Android. The virtual keyboard fires no usabel key events.
+         * Only used on Android. The virtual keyboard fires no usable key events.
          *
          * @param {Event} e not used
          *
@@ -981,39 +977,32 @@ var fe;
                 this.repaint();
             }
         };
-        // MausActions
-        FormulaField.prototype.onMouseDown = function (e) {
-            e.preventDefault();
+        // pointer actions (used for mouse and touch)
+        FormulaField.prototype.onPointerDown = function (xm, ym, markStart) {
+            if (markStart === void 0) { markStart = true; }
             this.ensureKeyFocus = 0;
             if (!this.hasFocus) {
                 this.requestFocus();
             }
-            var xm = e.offsetX;
-            var ym = e.offsetY;
             if (this.d.isIn(xm - this.x, ym - this.y))
                 this.cursor = this.term.fromXY(xm, ym);
             else if (xm < this.x)
                 this.cursor = this.term;
             else if (this.x + this.d.w < xm)
                 this.cursor = this.term.last().cursorByLeft(false);
-            console.log("e: %o", e);
-            console.log("cur: %o", this.cursor);
-            if (e.button == 0) {
+            if (markStart) {
                 this.mouseMark = true;
                 this.markBegin = null;
                 this.mouseMarkTerm1 = this.cursor;
             }
             this.repaint();
         };
-        FormulaField.prototype.onMouseUp = function (e) {
-            e.preventDefault();
+        FormulaField.prototype.onPointerUp = function () {
+            //e.preventDefault();
             this.mouseMark = false;
         };
-        // MouseMotions
-        FormulaField.prototype.onMouseMove = function (e) {
-            e.preventDefault();
-            var xm = e.offsetX;
-            var ym = e.offsetY;
+        FormulaField.prototype.onPointerMove = function (xm, ym) {
+            //e.preventDefault();
             if (this.d.isIn(xm - this.x, ym - this.y) && this.mouseMark) {
                 this.cursor = this.term.fromXY(xm, ym);
                 this.mouseMarkTerm2 = this.cursor;
@@ -1075,6 +1064,50 @@ var fe;
                 this.repaint();
             }
         };
+        // Mouse Events
+        FormulaField.prototype.onMouseDown = function (e) {
+            e.preventDefault();
+            this.onPointerDown(e.offsetX * this.factor, e.offsetY * this.factor, e.button == 0);
+        };
+        FormulaField.prototype.onMouseUp = function (e) {
+            e.preventDefault();
+            this.onPointerUp();
+        };
+        FormulaField.prototype.onMouseMove = function (e) {
+            e.preventDefault();
+            this.onPointerMove(e.offsetX * this.factor, e.offsetY * this.factor);
+        };
+        // Touch Events
+        FormulaField.prototype.onTouchStart = function (e) {
+            if (e.touches.length == 1) {
+                var p = e.changedTouches[0];
+                var rect = this.canvas.getBoundingClientRect();
+                this.onPointerDown((p.pageX - rect.left) * this.factor, (p.pageY - rect.top) * this.factor);
+                this.touchId1 = p.identifier;
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        };
+        FormulaField.prototype.onTouchMove = function (e) {
+            if (e.touches.length == 1 && e.touches.item(0).identifier == this.touchId1) {
+                var p = e.touches[0];
+                var rect = this.canvas.getBoundingClientRect();
+                this.onPointerMove((p.pageX - rect.left) * this.factor, (p.pageY - rect.top) * this.factor);
+                e.preventDefault();
+            }
+        };
+        FormulaField.prototype.onTouchEnd = function (e) {
+            if (this.touchId1 != null) {
+                for (var i = 0; i < e.touches.length; i++) {
+                    var p = e.touches.item(i);
+                    if (p.identifier == this.touchId1) {
+                        return;
+                    }
+                }
+                this.onPointerUp();
+                this.touchId1 = null;
+            }
+        };
         FormulaField.prototype.onFocus = function (e) {
             console.log("focus");
             this.preventCloseToolbar();
@@ -1120,6 +1153,10 @@ var fe;
             this.hiddenInput.style.top = ad.y + 'px';
             this.hiddenInput.style.width = ad.w + 'px';
             this.hiddenInput.style.height = ad.h + 'px';
+        };
+        FormulaField.prototype.deb = function (s) {
+            var d = document.getElementById("debug");
+            d.innerHTML = s + '<br/>' + d.innerHTML;
         };
         return FormulaField;
     }(fe.FormulaPanel));
@@ -1745,6 +1782,7 @@ var fe;
             this.noticesFocus = false;
             this.movingDx = -1;
             this.movingDy = -1;
+            this.touchId1 = null;
             fp.toolbar = this;
             // insert the css-file
             if (!window["feCssInserted"]) {
@@ -1827,7 +1865,9 @@ var fe;
             this.div.addEventListener("mousedown", this.onMouseDown.bind(this));
             this.div.addEventListener("mouseup", this.onMouseUp.bind(this));
             this.div.addEventListener("mousemove", this.onMouseMove.bind(this));
-            // addKeyListener(fp);
+            this.div.addEventListener("touchstart", this.onTouchStart.bind(this));
+            this.div.addEventListener("touchmove", this.onTouchMove.bind(this));
+            this.div.addEventListener("touchend", this.onTouchEnd.bind(this));
         }
         Toolbar.prototype.newPopup = function (width) {
             return this.oldStyle ? new fe.PopupMenu(this, width, true) : new fe.PopupMenu(this, width);
@@ -1897,29 +1937,10 @@ var fe;
             this.closeSubMenu();
             if (oldSubMenu == subMenu) // pressed again, so close only
                 return;
-            // fp.menuAction = true;
             this.menu[subMenu].active = true;
             this.menu[subMenu].button.classList.add('pressed');
             this.setVisible(true);
-            // menu[subMenu].repaint();
-            // Point p1 = menu[subMenu].getLocationOnScreen();
-            // // fp.focusAction = true;
             this.popup[this.subMenu = subMenu].setVisible(true, this.menu[subMenu].button.getBoundingClientRect());
-            // // p[this.subMenu = subMenu].show();
-            // Rectangle r = menu[subMenu].getBounds();
-            // p1.y += r.height;
-            // Dimension d = popup[subMenu].getPreferredSize();
-            // // p[subMenu].toFront();
-            // popup[subMenu].setBounds(p1.x, p1.y, d.width, d.height);
-            // // p[subMenu].show();
-            // if (oldStyle) {
-            //     popup[subMenu].repaint();
-            //     fp.focusAction = true;
-            //     popup[subMenu].toFront();
-            //     fp.requestFocus();
-            // }
-            // fp.closeToolbarThread = null;
-            // fp.menuAction = false;
         };
         Toolbar.prototype.closeSubMenu = function () {
             if (this.subMenu != -1) {
@@ -1991,15 +2012,7 @@ var fe;
         Toolbar.prototype.isVisible = function () {
             return this.div.parentElement != null && this.div.style.display != 'none';
         };
-        //     public void windowActivated(WindowEvent e) {
-        //         if (!noticesFocus) { // z.B. version 1.3.1_18
-        //             fp.ensureKeyFocus = 4;
-        //             fp.requestFocus();
-        //             fp.hasFocus = true;
-        //         } else if (oldStyle) {
-        //             fp.ensureKeyFocus = 2;
-        //         }
-        //     }
+        // Mouse Events
         Toolbar.prototype.onMouseDown = function (e) {
             e.preventDefault();
             console.log("e %o", e);
@@ -2020,6 +2033,41 @@ var fe;
         Toolbar.prototype.onMouseUp = function (e) {
             e.preventDefault();
             this.movingDx = -1;
+        };
+        // Touch Events
+        Toolbar.prototype.onTouchStart = function (e) {
+            var r = this.div.getBoundingClientRect();
+            var p = e.changedTouches[0];
+            this.movingDx = p.clientX - r.left - (document.body.scrollLeft || document.documentElement.scrollLeft);
+            this.movingDy = p.clientY - r.top - (document.body.scrollTop || document.documentElement.scrollTop);
+            this.fp.requestFocus();
+            this.touchId1 = p.identifier;
+        };
+        Toolbar.prototype.onTouchMove = function (e) {
+            if (this.movingDx != -1) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    var p = e.changedTouches.item(i);
+                    if (p.identifier == this.touchId1) {
+                        this.div.style.left = (-this.movingDx + p.clientX) + "px";
+                        this.div.style.top = (-this.movingDy + p.clientY) + "px";
+                        if (this.subMenu != -1)
+                            this.popup[this.subMenu].setPosition(this.menu[this.subMenu].button.getBoundingClientRect());
+                    }
+                }
+                e.preventDefault();
+            }
+        };
+        Toolbar.prototype.onTouchEnd = function (e) {
+            if (this.touchId1 != null) {
+                for (var i = 0; i < e.touches.length; i++) {
+                    var p = e.touches.item(i);
+                    if (p.identifier == this.touchId1) {
+                        return;
+                    }
+                }
+                this.movingDx = -1;
+                this.touchId1 = null;
+            }
         };
         return Toolbar;
     }());
