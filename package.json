@@ -17,7 +17,7 @@
   },
   "scripts": {
     "tsc": "tsc",
-    "minify": "uglifyjs --compress -o dist/fe.min.js --mangle -b beautify=false,ascii_only=true dist/fe.js --source-map",
+    "minify": "uglifyjs --compress drop_console -o dist/fe.min.js --mangle -b beautify=false,ascii_only=true dist/fe.js --source-map",
     "build": "npm run tsc",
     "build-min": "npm run build & npm run minify"
   }
