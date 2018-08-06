@@ -30,8 +30,8 @@ namespace fe {
             this.dim.h2 = this.dy2 + this.d2.h2;
         }
 
-        toString(): string {
-            return "^{" + this.con1 + "}_{" + this.con2 + "}";
+        toString(cursor: Term): string {
+            return "^{" + this.con1.toStringAll(cursor) + "}_{" + this.con2.toStringAll(cursor) + "}";
         }
 
         toMPad(): string {

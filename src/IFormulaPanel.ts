@@ -6,6 +6,7 @@ namespace fe {
         getFont(iFontIndex: number, iFontSize: number): string; // font string for canvas.cxt
         getFontMetrics(iFontIndex: number, iFontSize: number): FontMetrics; // font string for canvas.cxt
         getFontDim(type: number, size: number): Dim;
+        setCursor(cursor: Term): void;
         debug: boolean;
     }
 }

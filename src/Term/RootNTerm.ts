@@ -53,8 +53,8 @@ namespace fe {
             return this.con1.fromXY(x, y);
         }
 
-        toString(): string {
-            return "\rootn{" + this.con1 + "}{" + this.con2 + "}";
+        toString(cursor: Term): string {
+            return "\rootn" + super.toString(cursor)
         }
 
         toMPad(): string {

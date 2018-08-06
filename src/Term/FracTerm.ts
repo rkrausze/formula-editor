@@ -14,8 +14,8 @@ namespace fe {
             ctx.fillRect(x + lh, y - m - lh / 2, this.dim.w - 2 * lh, lh);
         }
 
-        toString(): string {
-            return "\frac{" + this.con1 + "}{" + this.con2 + "}";
+        toString(cursor: Term): string {
+            return "\\frac{" + this.con1.toStringAll(cursor) + "}{" + this.con2.toStringAll(cursor) + "}";
         }
 
         toMPad(): string {

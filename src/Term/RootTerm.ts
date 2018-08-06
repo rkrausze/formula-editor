@@ -34,8 +34,8 @@ namespace fe {
             ctx.fillRect(x + 4 * lh, y - this.d.h1 - 2 * lh, 2 * lh + this.d.w - 1, lh);
         }
 
-        toString(): string {
-            return "\root2{" + this.con + "}";
+        toString(cursor: Term): string {
+            return "\root2{" + this.con.toStringAll(cursor) + "}";
         }
 
         toMPad(): string {

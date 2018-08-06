@@ -169,10 +169,10 @@ namespace fe {
             return this.con[this.mainTermNr];
         }
 
-        toString(): string {
+        toString(cursor: Term): string {
             let s = "";
             for (let i = 0; i < this.nTerm; i++)
-                s += "{" + this.getCon(i).toString() + "}";
+                s += "{" + this.getCon(i).toStringAll(cursor) + "}";
             return s;
         }
     }

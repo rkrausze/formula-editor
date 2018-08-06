@@ -26,8 +26,8 @@ namespace fe {
             this.dim.h2 = this.d2.h2 + this.dy2;
         }
 
-        toString(): string {
-            return "\\over{" + this.con1 + "}{" + this.con2 + "}";
+        toString(cursor: Term): string {
+            return "\\under" + super.toString(cursor);
         }
 
         toMPad(): string {

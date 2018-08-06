@@ -97,8 +97,8 @@ namespace fe {
             return this.con.fromXY(x, y);
         }
 
-        toString(): string {
-            return "SingleTerm(" + this.con + ")";
+        toString(cursor: Term): string {
+            return "SingleTerm(" + this.con.toStringAll(cursor) + ")";
         }
 
     }

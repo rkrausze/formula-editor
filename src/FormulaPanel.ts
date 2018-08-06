@@ -208,5 +208,8 @@ namespace fe {
             this.area.push(addArea);
         }
 
-    }
+        setCursor(cursor: Term): void {
+            // ignore
+        }
+   }
 }

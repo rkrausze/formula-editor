@@ -266,10 +266,10 @@ namespace fe {
 
         // Umwandlung in Text
 
-        abstract toString(): string;
+        abstract toString(cursor: Term): string;
 
-        toStringAll(): string {
-            return this.toString() + (this.next != null ? this.next.toStringAll() : "");
+        toStringAll(cursor: Term): string {
+            return (this == cursor ? "\\CURSOR" : "") + this.toString(cursor) + (this.next != null ? this.next.toStringAll(cursor) : "");
         }
 
         abstract toMPad(): string;

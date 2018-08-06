@@ -70,10 +70,16 @@ namespace fe {
             let sct: SingleContainerTerm;
             let dct: DoubleContainerTerm;
             let curFontIndex: number = 0;
+            let cursorMark = false;
             while (!sp.eof()) {
                 if (sp.check("FONT")) {
                     sp.skip(4);
                     curFontIndex = sp.nextCharCode() - '0'.charCodeAt(0);
+                    continue;
+                }
+                if (sp.check("\\CURSOR")) {
+                    sp.skip(7)
+                    cursorMark = true;
                     continue;
                 }
                 let c: string = sp.nextChar();
@@ -145,6 +151,10 @@ namespace fe {
                     }
                 }
                 curFontIndex = 0;
+                if ( cursorMark ) {
+                    cursorMark = false;
+                    fp.setCursor(t);
+                }
                 if (!chain)
                     break;
             }

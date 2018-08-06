@@ -25,8 +25,8 @@ namespace fe {
             return dc;
         }
 
-        toString(): string {
-            return "^{" + this.con + "}";
+        toString(cursor: Term): string {
+            return "^{" + this.con.toStringAll(cursor) + "}";
         }
 
         toMPad(): string {

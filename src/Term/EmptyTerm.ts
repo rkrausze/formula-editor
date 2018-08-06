@@ -24,7 +24,7 @@ namespace fe {
         }
 
         toString(): string {
-            return "EmtyTerm()";
+            return "";// "EmtyTerm()";
         }
 
         toMPad(): string {

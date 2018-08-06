@@ -35,8 +35,8 @@ namespace fe {
             */
         }
 
-        toString(): string {
-            return "\\above{" + this.con1 + "}{" + this.con2 + "}";
+        toString(cursor: Term): string {
+            return "\\above" + super.toString(cursor)
         }
 
         toMPad(): string {

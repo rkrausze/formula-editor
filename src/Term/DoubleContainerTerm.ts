@@ -149,6 +149,11 @@ namespace fe {
                 return this.getUpper().fromXY(x, y);
             return this.getLower().fromXY(x, y);
         }
+
+        toString(cursor: Term): string {
+            return "{" + this.con1.toStringAll(cursor) + "}{" + this.con2.toStringAll(cursor) + "}";
+        }
+
     }
 
 }

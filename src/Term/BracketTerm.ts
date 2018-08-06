@@ -160,8 +160,8 @@ namespace fe {
             ctx.restore();
         }
 
-        toString(): string {
-            return "\\bracket" + this.type + "{" + this.con + "}";
+        toString(cursor: Term): string {
+            return "\\bracket" + this.type + "{" + this.con.toStringAll(cursor) + "}";
         }
 
         toMPad(): string {

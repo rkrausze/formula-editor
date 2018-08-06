@@ -43,8 +43,8 @@ namespace fe {
         *
         * @see Term#toString()
         */
-        toString(): string {
-            return "\\overunder" + super.toString();
+        toString(cursor: Term): string {
+            return "\\overunder" + super.toStringAll(cursor);
         }
 
         toMPad(): string {

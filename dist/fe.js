@@ -452,8 +452,8 @@ var fe;
                 return (this.prev == null || this.x + this.dim.w / 2 < x) ? this : this.prev;
             return this.next.fromXY(x, y);
         };
-        Term.prototype.toStringAll = function () {
-            return this.toString() + (this.next != null ? this.next.toStringAll() : "");
+        Term.prototype.toStringAll = function (cursor) {
+            return (this == cursor ? "\\CURSOR" : "") + this.toString(cursor) + (this.next != null ? this.next.toStringAll(cursor) : "");
         };
         Term.prototype.toMPadAll = function () {
             return this.toMPad() + (this.next != null ? this.next.toMPadAll() : "");
@@ -651,6 +651,9 @@ var fe;
         FormulaPanel.prototype.addColorArea = function (addArea) {
             this.area.push(addArea);
         };
+        FormulaPanel.prototype.setCursor = function (cursor) {
+            // ignore
+        };
         // Font
         FormulaPanel.nFontType = 2;
         FormulaPanel.nFontSize = 5;
@@ -680,8 +683,11 @@ var fe;
             _this.powIndKeys = true; // ob Tasten ^ und _ Power bw. Index erzeugen
             _this.caretThread = null;
             _this.touchId1 = null;
+            _this.undoStack = [];
+            _this.undoPointer = -1; // points to the last stored/displayed position
             _this.ensureKeyFocus = 0;
             _this.cursor = _this.term;
+            _this.storeUndo();
             // Listeners
             canvas.addEventListener("mousedown", _this.onMouseDown.bind(_this));
             canvas.addEventListener("mouseup", _this.onMouseUp.bind(_this));
@@ -761,7 +767,6 @@ var fe;
         };
         // KeyListener
         FormulaField.prototype.onHiddenInputKeyDown = function (e) {
-            console.log("in keyDown");
             // e.preventDefault();
             var key = e.key;
             var shift = e.shiftKey;
@@ -771,6 +776,12 @@ var fe;
             }
             else if (key == "F12" && e.ctrlKey) {
                 // TODO MIG (new AboutDlg(getFrame(), "About", this)).show();
+            }
+            else if (e.keyCode == 90 && (e.ctrlKey || e.metaKey)) {
+                this.undo();
+            }
+            else if (e.keyCode == 89 && (e.ctrlKey || e.metaKey)) {
+                this.redo();
             }
             else if (key == "ArrowLeft") {
                 this.cursor = this.cursor.left(shift);
@@ -876,8 +887,9 @@ var fe;
         };
         FormulaField.prototype.onHiddenInputKeyPress = function (e) {
             e.preventDefault();
+            if (e.ctrlKey || e.metaKey)
+                return;
             var c = e.key;
-            console.log("keyPress: " + c);
             if (c == '^' && this.powIndKeys) { // nichts markiert
                 this.exec("new \\power#");
                 return;
@@ -891,6 +903,7 @@ var fe;
             this.cursor.insertAsNext(new fe.SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
             this.cursor = this.cursor.next;
             this.repaint();
+            this.storeUndo();
         };
         /**
          * Only used on Android. The virtual keyboard fires no usable key events.
@@ -909,6 +922,7 @@ var fe;
                 this.cursor = this.cursor.next;
                 this.repaint();
                 this.hiddenInput.value = "";
+                this.storeUndo();
             }
         };
         // High Level Funktionen mit der Markierung
@@ -975,6 +989,7 @@ var fe;
                 else
                     this.cursor = t.getCon((t.getNCon() > 1 && tMark != null && command.indexOf('#') != -1) ? 1 : 0).last().cursorByLeft(false);
                 this.repaint();
+                this.storeUndo();
             }
         };
         // pointer actions (used for mouse and touch)
@@ -1153,6 +1168,31 @@ var fe;
             this.hiddenInput.style.top = ad.y + 'px';
             this.hiddenInput.style.width = ad.w + 'px';
             this.hiddenInput.style.height = ad.h + 'px';
+        };
+        // undo stack
+        FormulaField.prototype.storeUndo = function () {
+            var s = this.term.toStringAll(this.cursor);
+            if (this.undoStack.length > 0) {
+                if (this.undoStack[this.undoPointer].replace("\\CURSOR", "") == s.replace("\\CURSOR", ""))
+                    return;
+            }
+            // store
+            this.undoStack[++this.undoPointer] = s;
+            this.undoStack = this.undoStack.slice(0, this.undoPointer + 1);
+            console.log("store: " + s);
+        };
+        FormulaField.prototype.undo = function () {
+            if (this.undoPointer <= 0)
+                return;
+            this.term = fe.TermFactory.readStringS1(this.undoStack[--this.undoPointer], this, null);
+        };
+        FormulaField.prototype.redo = function () {
+            if (this.undoPointer >= this.undoStack.length - 1)
+                return;
+            this.term = fe.TermFactory.readStringS1(this.undoStack[++this.undoPointer], this, null);
+        };
+        FormulaField.prototype.setCursor = function (cursor) {
+            this.cursor = cursor;
         };
         FormulaField.prototype.deb = function (s) {
             var d = document.getElementById("debug");
@@ -2097,7 +2137,7 @@ var fe;
             }
         };
         EmptyTerm.prototype.toString = function () {
-            return "EmtyTerm()";
+            return ""; // "EmtyTerm()";
         };
         EmptyTerm.prototype.toMPad = function () {
             return "";
@@ -2224,6 +2264,9 @@ var fe;
                 return this.getUpper().fromXY(x, y);
             return this.getLower().fromXY(x, y);
         };
+        DoubleContainerTerm.prototype.toString = function (cursor) {
+            return "{" + this.con1.toStringAll(cursor) + "}{" + this.con2.toStringAll(cursor) + "}";
+        };
         return DoubleContainerTerm;
     }(fe.Term));
     fe.DoubleContainerTerm = DoubleContainerTerm;
@@ -2263,8 +2306,8 @@ var fe;
             * dim.w-2*lh, lh);
             */
         };
-        AboveTerm.prototype.toString = function () {
-            return "\\above{" + this.con1 + "}{" + this.con2 + "}";
+        AboveTerm.prototype.toString = function (cursor) {
+            return "\\above" + _super.prototype.toString.call(this, cursor);
         };
         AboveTerm.prototype.toMPad = function () {
             return "{" + this.con1.toMPadAll() + "}\\over{" + this.con2.toMPadAll() + "}";
@@ -2351,8 +2394,8 @@ var fe;
                 return this;
             return this.con.fromXY(x, y);
         };
-        SingleContainerTerm.prototype.toString = function () {
-            return "SingleTerm(" + this.con + ")";
+        SingleContainerTerm.prototype.toString = function (cursor) {
+            return "SingleTerm(" + this.con.toStringAll(cursor) + ")";
         };
         return SingleContainerTerm;
     }(fe.Term));
@@ -2522,8 +2565,8 @@ var fe;
             }
             ctx.restore();
         };
-        BracketTerm.prototype.toString = function () {
-            return "\\bracket" + this.type + "{" + this.con + "}";
+        BracketTerm.prototype.toString = function (cursor) {
+            return "\\bracket" + this.type + "{" + this.con.toStringAll(cursor) + "}";
         };
         BracketTerm.prototype.toMPad = function () {
             if (this.type == 0)
@@ -2558,8 +2601,8 @@ var fe;
             var ctx = g.getContext("2d");
             ctx.fillRect(x + lh, y - m - lh / 2, this.dim.w - 2 * lh, lh);
         };
-        FracTerm.prototype.toString = function () {
-            return "\frac{" + this.con1 + "}{" + this.con2 + "}";
+        FracTerm.prototype.toString = function (cursor) {
+            return "\\frac{" + this.con1.toStringAll(cursor) + "}{" + this.con2.toStringAll(cursor) + "}";
         };
         FracTerm.prototype.toMPad = function () {
             return "{" + this.con1.toMPadAll() + "}/{" + this.con2.toMPadAll() + "}";
@@ -2593,8 +2636,8 @@ var fe;
             dc.w = this.dim.w;
             return dc;
         };
-        IndexTerm.prototype.toString = function () {
-            return "_{" + this.con + "}";
+        IndexTerm.prototype.toString = function (cursor) {
+            return "_{" + this.con.toStringAll(cursor) + "}";
         };
         IndexTerm.prototype.toMPad = function () {
             return "_{" + this.con.toMPadAll() + "}";
@@ -2741,10 +2784,10 @@ var fe;
                     return this.con[i].fromXY(x, y);
             return this.con[this.mainTermNr];
         };
-        MultiContainerTerm.prototype.toString = function () {
+        MultiContainerTerm.prototype.toString = function (cursor) {
             var s = "";
             for (var i = 0; i < this.nTerm; i++)
-                s += "{" + this.getCon(i).toString() + "}";
+                s += "{" + this.getCon(i).toStringAll(cursor) + "}";
             return s;
         };
         return MultiContainerTerm;
@@ -2778,8 +2821,8 @@ var fe;
             this.dim.h1 = this.d2.h1 - this.dy2;
             this.dim.h2 = this.d1.h2;
         };
-        OverTerm.prototype.toString = function () {
-            return "\\over{" + this.con1 + "}{" + this.con2 + "}";
+        OverTerm.prototype.toString = function (cursor) {
+            return "\\over" + _super.prototype.toString.call(this, cursor);
         };
         OverTerm.prototype.toMPad = function () {
             return "{" + this.con1.toMPadAll() + "}\\ontop{" + this.con2.toMPadAll() + "}";
@@ -2832,8 +2875,8 @@ var fe;
         *
         * @see Term#toString()
         */
-        OverUnderTerm.prototype.toString = function () {
-            return "\\overunder" + _super.prototype.toString.call(this);
+        OverUnderTerm.prototype.toString = function (cursor) {
+            return "\\overunder" + _super.prototype.toStringAll.call(this, cursor);
         };
         OverUnderTerm.prototype.toMPad = function () {
             return "{" + this.con[0].toMPadAll() + "}\\ontop{" + this.con[1].toMPadAll() + "}\\below{" + this.con[2].toMPadAll() + "}";
@@ -2875,8 +2918,8 @@ var fe;
             this.dim.h1 = -this.dy1 + this.d1.h1;
             this.dim.h2 = this.dy2 + this.d2.h2;
         };
-        PowIndTerm.prototype.toString = function () {
-            return "^{" + this.con1 + "}_{" + this.con2 + "}";
+        PowIndTerm.prototype.toString = function (cursor) {
+            return "^{" + this.con1.toStringAll(cursor) + "}_{" + this.con2.toStringAll(cursor) + "}";
         };
         PowIndTerm.prototype.toMPad = function () {
             return "^{" + this.con1.toMPadAll() + "}_{" + this.con2.toMPadAll() + "}";
@@ -2910,8 +2953,8 @@ var fe;
             dc.w = this.dim.w;
             return dc;
         };
-        PowerTerm.prototype.toString = function () {
-            return "^{" + this.con + "}";
+        PowerTerm.prototype.toString = function (cursor) {
+            return "^{" + this.con.toStringAll(cursor) + "}";
         };
         PowerTerm.prototype.toMPad = function () {
             return "^{" + this.con.toMPadAll() + "}";
@@ -2972,8 +3015,8 @@ var fe;
                 return this.con2.fromXY(x, y);
             return this.con1.fromXY(x, y);
         };
-        RootNTerm.prototype.toString = function () {
-            return "\rootn{" + this.con1 + "}{" + this.con2 + "}";
+        RootNTerm.prototype.toString = function (cursor) {
+            return "\rootn" + _super.prototype.toString.call(this, cursor);
         };
         RootNTerm.prototype.toMPad = function () {
             return "{" + this.con2.toMPadAll() + "}\\nroot{" + this.con1.toMPadAll() + "}";
@@ -3016,8 +3059,8 @@ var fe;
             ctx.stroke();
             ctx.fillRect(x + 4 * lh, y - this.d.h1 - 2 * lh, 2 * lh + this.d.w - 1, lh);
         };
-        RootTerm.prototype.toString = function () {
-            return "\root2{" + this.con + "}";
+        RootTerm.prototype.toString = function (cursor) {
+            return "\root2{" + this.con.toStringAll(cursor) + "}";
         };
         RootTerm.prototype.toMPad = function () {
             return "\\root{" + this.con.toMPadAll() + "}";
@@ -3199,10 +3242,16 @@ var fe;
             var sct;
             var dct;
             var curFontIndex = 0;
+            var cursorMark = false;
             while (!sp.eof()) {
                 if (sp.check("FONT")) {
                     sp.skip(4);
                     curFontIndex = sp.nextCharCode() - '0'.charCodeAt(0);
+                    continue;
+                }
+                if (sp.check("\\CURSOR")) {
+                    sp.skip(7);
+                    cursorMark = true;
                     continue;
                 }
                 var c = sp.nextChar();
@@ -3281,6 +3330,10 @@ var fe;
                     }
                 }
                 curFontIndex = 0;
+                if (cursorMark) {
+                    cursorMark = false;
+                    fp.setCursor(t);
+                }
                 if (!chain)
                     break;
             }
@@ -3335,8 +3388,8 @@ var fe;
             this.dim.h1 = this.d1.h1;
             this.dim.h2 = this.d2.h2 + this.dy2;
         };
-        UnderTerm.prototype.toString = function () {
-            return "\\over{" + this.con1 + "}{" + this.con2 + "}";
+        UnderTerm.prototype.toString = function (cursor) {
+            return "\\under" + _super.prototype.toString.call(this, cursor);
         };
         UnderTerm.prototype.toMPad = function () {
             return "{" + this.con1.toMPadAll() + "}\\below{" + this.con2.toMPadAll() + "}";

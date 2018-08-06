@@ -37,10 +37,13 @@ namespace fe {
 
         private touchId1: number = null;
 
+        private undoStack: string[] = [];
+        private undoPointer = -1; // points to the last stored/displayed position
 
         constructor(canvas: HTMLCanvasElement, sInitTerm: string) {
             super(canvas, sInitTerm);
             this.cursor = this.term;
+            this.storeUndo();
 
             // Listeners
             canvas.addEventListener("mousedown", this.onMouseDown.bind(this));
@@ -129,7 +132,6 @@ namespace fe {
 
         // KeyListener
         onHiddenInputKeyDown(e: KeyboardEvent) {
-            console.log("in keyDown");
             // e.preventDefault();
             let key: string = e.key;
             let shift: boolean = e.shiftKey;
@@ -139,6 +141,12 @@ namespace fe {
             }
             else if (key == "F12" && e.ctrlKey) {
                 // TODO MIG (new AboutDlg(getFrame(), "About", this)).show();
+            }
+            else if ( e.keyCode == 90 && (e.ctrlKey || e.metaKey)) {
+                this.undo();
+            }
+            else if ( e.keyCode == 89 && (e.ctrlKey || e.metaKey) ) {
+                this.redo();
             }
             else if (key == "ArrowLeft") {
                 this.cursor = this.cursor.left(shift);
@@ -234,8 +242,9 @@ namespace fe {
 
         onHiddenInputKeyPress(e: KeyboardEvent) {
             e.preventDefault();
+            if ( e.ctrlKey || e.metaKey )
+                return;
             let c: string = e.key;
-            console.log("keyPress: "+ c);
             if (c == '^' && this.powIndKeys) { // nichts markiert
                 this.exec("new \\power#");
                 return;
@@ -249,6 +258,7 @@ namespace fe {
             this.cursor.insertAsNext(new SimpleTerm(this, this.cursor.parent, c == '*' ? "\u2027" : "" + c, 0));
             this.cursor = this.cursor.next;
             this.repaint();
+            this.storeUndo();
         }
 
         /**
@@ -268,6 +278,7 @@ namespace fe {
                 this.cursor = this.cursor.next;
                 this.repaint();
                 this.hiddenInput.value = "";
+                this.storeUndo();
             }
         }
 
@@ -336,6 +347,7 @@ namespace fe {
                 else
                     this.cursor = t.getCon((t.getNCon() > 1 && tMark != null && command.indexOf('#') != -1) ? 1 : 0).last().cursorByLeft(false);
                 this.repaint();
+                this.storeUndo();
             }
         }
 
@@ -528,6 +540,36 @@ namespace fe {
             this.hiddenInput.style.top = ad.y+'px';
             this.hiddenInput.style.width = ad.w+'px';
             this.hiddenInput.style.height = ad.h+'px';
+        }
+
+        // undo stack
+
+        private storeUndo() {
+            let s = this.term.toStringAll(this.cursor);
+            if ( this.undoStack.length > 0 ) {
+                if ( this.undoStack[this.undoPointer].replace("\\CURSOR", "") == s.replace("\\CURSOR", "") )
+                    return;
+            }
+            // store
+            this.undoStack[++this.undoPointer] = s;
+            this.undoStack = this.undoStack.slice(0, this.undoPointer+1);
+            console.log("store: "+s);
+        }
+
+        private undo() {
+            if ( this.undoPointer <= 0 )
+                return;
+            this.term = TermFactory.readStringS1(this.undoStack[--this.undoPointer], this, null);
+        }
+
+        private redo() {
+            if ( this.undoPointer >= this.undoStack.length-1 )
+                return;
+            this.term = TermFactory.readStringS1(this.undoStack[++this.undoPointer], this, null);
+        }
+
+        setCursor(cursor: Term): void {
+            this.cursor = cursor;
         }
 
         protected deb(s: String): void {
