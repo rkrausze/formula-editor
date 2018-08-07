@@ -509,6 +509,7 @@ var fe;
             this.first = true;
             this.factor = -1; // = window.devicePixelRatio for smarter graphics
             this.baseline = -1; // -1 => egal, also zentriert
+            this.autoVerticalAlign = true; // automatic vertical positioning of canvas
             this.backgroundColor = "#FFFFFF";
             this.foregroundColor = "#000000";
             this.markColor = "#C0C0C0";
@@ -564,6 +565,8 @@ var fe;
                 this.y = (this.height - this.d.h1 - this.d.h2) / 2 + this.d.h1;
             else
                 this.y = this.baseline;
+            if (this.autoVerticalAlign)
+                this.canvas.style.marginBottom = (this.y - this.canvas.height) + "px";
         };
         FormulaPanel.prototype.setDim = function (w, h, baseline) {
             this.width = w;
@@ -1246,6 +1249,8 @@ var fe;
                 else
                     this.fp.factor = parseInt(para['factor']);
             }
+            // automatic vertical positioning (baseline)
+            this.fp.autoVerticalAlign = this.booleanPara(para["autoverticalalign"], true);
             // Area
             if (para["area"] != null) {
                 if (typeof para["area"] == 'object') {
@@ -2876,7 +2881,7 @@ var fe;
         * @see Term#toString()
         */
         OverUnderTerm.prototype.toString = function (cursor) {
-            return "\\overunder" + _super.prototype.toStringAll.call(this, cursor);
+            return "\\overunder" + _super.prototype.toString.call(this, cursor);
         };
         OverUnderTerm.prototype.toMPad = function () {
             return "{" + this.con[0].toMPadAll() + "}\\ontop{" + this.con[1].toMPadAll() + "}\\below{" + this.con[2].toMPadAll() + "}";

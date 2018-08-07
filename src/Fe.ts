@@ -46,6 +46,8 @@ namespace fe {
                 else
                     this.fp.factor = parseInt(para['factor']);
             }
+            // automatic vertical positioning (baseline)
+            this.fp.autoVerticalAlign = this.booleanPara(para["autoverticalalign"], true);
             // Area
             if ( para["area"] != null) {
                 if ( typeof para["area"] == 'object' ) {

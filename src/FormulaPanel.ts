@@ -40,6 +40,8 @@ namespace fe {
 
         baseline = -1; // -1 => egal, also zentriert
 
+        autoVerticalAlign = true; // automatic vertical positioning of canvas
+
         backgroundColor: string = "#FFFFFF";
         foregroundColor: string = "#000000";
         protected markColor = "#C0C0C0";
@@ -103,6 +105,8 @@ namespace fe {
                 this.y = (this.height - this.d.h1 - this.d.h2) / 2 + this.d.h1;
             else
                 this.y = this.baseline;
+            if ( this.autoVerticalAlign )
+                this.canvas.style.marginBottom = (this.y-this.canvas.height) + "px";
         }
 
         setDim(w: number, h: number, baseline: number): void {
