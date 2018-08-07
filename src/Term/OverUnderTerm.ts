@@ -44,7 +44,7 @@ namespace fe {
         * @see Term#toString()
         */
         toString(cursor: Term): string {
-            return "\\overunder" + super.toStringAll(cursor);
+            return "\\overunder" + super.toString(cursor);
         }
 
         toMPad(): string {
