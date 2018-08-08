@@ -72,7 +72,7 @@ namespace fe {
             this.hiddenInput.style.zIndex = "0";
             this.hiddenInput.style.backgroundColor = '#0F0';
             // hide native blue text cursor on iOS
-            //this.hiddenInput.style.transform = 'scale(0)'; TEST
+            this.hiddenInput.style.transform = 'scale(0)';
 
             this.updateHiddenInput();
             document.body.appendChild(this.hiddenInput);
@@ -84,6 +84,8 @@ namespace fe {
             if ( navigator.userAgent.match(/Android/i) ) {
                 this.hiddenInput.addEventListener("input", this.onHiddenInputInput.bind(this)); // for android virtual keyboard
             }
+            window.addEventListener("resize", this.updateHiddenInput.bind(this));
+            window.setTimeout(this.updateHiddenInput.bind(this), 300); // maybe after other layout stuff done
         }
 
         paint(g: HTMLCanvasElement): void {
@@ -495,11 +497,8 @@ namespace fe {
             console.log("focus");
             this.preventCloseToolbar();
             this.hasFocus = true;
-            // TODO MIG if (ensureKeyFocus > 0)
-            //    ensureKeyFocus--;
+            this.canvas.classList.add("fe-focus");
             if (this.toolbar != null && !this.toolbar.isVisible()) {
-                //focusAction = true;
-                //ensureKeyFocus = 2;
                 this.toolbar.setVisible(true);
             }
             this.hiddenInput.focus();
@@ -507,12 +506,10 @@ namespace fe {
 
         onHiddenInputBlur(e: FocusEvent) {
             console.log("blur hi");
-            // TODO MIG if (ensureKeyFocus > 0)
-            //     ensureKeyFocus--;
-            if (this.toolbar != null && this.toolbar.isVisible() /*&& this.ensureKeyFocus == 0*/)
+            if (this.toolbar != null && this.toolbar.isVisible() )
                 this.closeToolbar();
-            // focusAction = false;
             this.hasFocus = false;
+            this.canvas.classList.remove("fe-focus");
         }
 
         closeToolbar() {
@@ -535,11 +532,12 @@ namespace fe {
 
         // deal with hiddenInput
         private updateHiddenInput(): void {
-            let ad = ElementUtils.getAbsDim(this.canvas);
-            this.hiddenInput.style.left = ad.x+'px';
-            this.hiddenInput.style.top = ad.y+'px';
-            this.hiddenInput.style.width = ad.w+'px';
-            this.hiddenInput.style.height = ad.h+'px';
+            let ad = this.canvas.getBoundingClientRect();
+            console.log("ad: %o", ad);
+            this.hiddenInput.style.left = ad.left+'px';
+            this.hiddenInput.style.top = ad.top+'px';
+            this.hiddenInput.style.width = ad.width+'px';
+            this.hiddenInput.style.height = ad.height+'pxt';
         }
 
         // undo stack

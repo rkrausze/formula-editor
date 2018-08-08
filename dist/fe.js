@@ -714,7 +714,7 @@ var fe;
             _this.hiddenInput.style.zIndex = "0";
             _this.hiddenInput.style.backgroundColor = '#0F0';
             // hide native blue text cursor on iOS
-            //this.hiddenInput.style.transform = 'scale(0)'; TEST
+            _this.hiddenInput.style.transform = 'scale(0)';
             _this.updateHiddenInput();
             document.body.appendChild(_this.hiddenInput);
             // Listeners
@@ -724,6 +724,8 @@ var fe;
             if (navigator.userAgent.match(/Android/i)) {
                 _this.hiddenInput.addEventListener("input", _this.onHiddenInputInput.bind(_this)); // for android virtual keyboard
             }
+            window.addEventListener("resize", _this.updateHiddenInput.bind(_this));
+            window.setTimeout(_this.updateHiddenInput.bind(_this), 300); // maybe after other layout stuff done
             return _this;
         }
         FormulaField.prototype.paint = function (g) {
@@ -1130,23 +1132,18 @@ var fe;
             console.log("focus");
             this.preventCloseToolbar();
             this.hasFocus = true;
-            // TODO MIG if (ensureKeyFocus > 0)
-            //    ensureKeyFocus--;
+            this.canvas.classList.add("fe-focus");
             if (this.toolbar != null && !this.toolbar.isVisible()) {
-                //focusAction = true;
-                //ensureKeyFocus = 2;
                 this.toolbar.setVisible(true);
             }
             this.hiddenInput.focus();
         };
         FormulaField.prototype.onHiddenInputBlur = function (e) {
             console.log("blur hi");
-            // TODO MIG if (ensureKeyFocus > 0)
-            //     ensureKeyFocus--;
-            if (this.toolbar != null && this.toolbar.isVisible() /*&& this.ensureKeyFocus == 0*/)
+            if (this.toolbar != null && this.toolbar.isVisible())
                 this.closeToolbar();
-            // focusAction = false;
             this.hasFocus = false;
+            this.canvas.classList.remove("fe-focus");
         };
         FormulaField.prototype.closeToolbar = function () {
             var _this = this;
@@ -1166,11 +1163,12 @@ var fe;
         };
         // deal with hiddenInput
         FormulaField.prototype.updateHiddenInput = function () {
-            var ad = fe.ElementUtils.getAbsDim(this.canvas);
-            this.hiddenInput.style.left = ad.x + 'px';
-            this.hiddenInput.style.top = ad.y + 'px';
-            this.hiddenInput.style.width = ad.w + 'px';
-            this.hiddenInput.style.height = ad.h + 'px';
+            var ad = this.canvas.getBoundingClientRect();
+            console.log("ad: %o", ad);
+            this.hiddenInput.style.left = ad.left + 'px';
+            this.hiddenInput.style.top = ad.top + 'px';
+            this.hiddenInput.style.width = ad.width + 'px';
+            this.hiddenInput.style.height = ad.height + 'pxt';
         };
         // undo stack
         FormulaField.prototype.storeUndo = function () {
